@@ -62,7 +62,10 @@ Function Initialize-LMPOVSetup {
         [Switch]$RunAll
     )
     #Check if we are logged in and have valid api creds
-    Begin {}
+    Begin {
+        #Check for newer version of Logic.Monitor module
+        Update-LogicMonitorSEModule -CheckOnly
+    }
     Process {
         $PortalInfo = Get-LMAccountStatus
         If ($($PortalInfo)) {
