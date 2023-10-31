@@ -1,4 +1,4 @@
-Function Invoke-LMDeviceDedupe {
+Function Invoke-DeviceDedupe {
 
     [CmdletBinding()]
     Param (
