@@ -64,8 +64,9 @@ Function Initialize-LMPOVSetup {
     #Check if we are logged in and have valid api creds
     Begin {}
     Process {
-        If ($Script:LMAuth.Valid) {
-            $PortalName = $Script:LMAuth.Portal
+        $PortalInfo = Get-LMAccountStatus
+        If ($($PortalInfo)) {
+            $PortalName = $PortalInfo.Portal
             $DeviceName = "$PortalName.logicmonitor.com"
 
             #Generate hastable of new dynamic groups to create
@@ -551,20 +552,20 @@ Function Initialize-LMPOVSetup {
                 $DashboardAPIUser = Get-LMUser -Name $DashboardAPIUserName
                 If(!$DashboardAPIRole){
                     $DashboardAPIRole = New-LMRole -Name $DashboardAPIRoleName -ResourcePermission view -DashboardsPermission manage -Description "Auto provisioned for use with dynamic dashboards"
-                    Write-LMHost "Successfully generated required API role ($DashboardAPIRoleName) for dynamic dashboards"
+                    Write-Host "Successfully generated required API role ($DashboardAPIRoleName) for dynamic dashboards"
                 }
                 If(!$DashboardAPIUser){
                     $DashboardAPIUser = New-LMAPIUser -Username "$DashboardAPIUserName" -note "Auto provisioned for use with dynamic dashboards" -RoleNames @($DashboardAPIRoleName)
-                    Write-LMHost "Successfully generated required API user ($DashboardAPIUserName) for dynamic dashboards"
+                    Write-Host "Successfully generated required API user ($DashboardAPIUserName) for dynamic dashboards"
                 }
                 If($DashboardAPIRole -and $DashboardAPIUser){
                     $APIToken = New-LMAPIToken -Username $DashboardAPIUserName -Note "Auto provisioned for use with dynamic dashboards"
                     If($APIToken){
-                        Write-LMHost "Successfully generated required API token for dynamic dashboards for user: $DashboardAPIUserName"
+                        Write-Host "Successfully generated required API token for dynamic dashboards for user: $DashboardAPIUserName"
                     }
                 }
                 Else{
-                    Write-LMHost "Unable to generate required API token for dynamic dashboards, manually update the required tokens to use dynamic dashboards"
+                    Write-Host "Unable to generate required API token for dynamic dashboards, manually update the required tokens to use dynamic dashboards"
                 }
 
                 Write-Host "[INFO]: Importing dynamic dashboards from repo."
@@ -576,7 +577,7 @@ Function Initialize-LMPOVSetup {
                 Foreach($Dashboard in $DashboardList){
                     Try{
                         $DashboardFile = (Invoke-WebRequest -Uri "$GitubURI/$($Dashboard.repo)/$($Dashboard.name)").Content
-                        If(!$(Get-LMDashboard -Name $(($DashboardFile | ConvertTo-Json).Name))){
+                        If(!$(Get-LMDashboard -Name $(($DashboardFile | ConvertFrom-Json).Name))){
                             $ImportedDashboard = Import-LMDashboard -File $DashboardFile -ReplaceAPITokensOnImport -APIToken $APIToken -ParentGroupId $DynamicDashboardGroup -ErrorAction Stop
                         }
                         Else{

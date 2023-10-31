@@ -20,7 +20,7 @@ Function Search-LMDeviceConfigBackup {
             $SearchResults = $device.configContent.Split("`n") | Select-String -Pattern $SearchPattern -Context 0,0 | Select-Object Line,LineNumber
             If($SearchResults){
                 $ResultCount = ($SearchResults | Measure-Object).Count
-                Write-LMHost "Found $ResultCount search results matching pattern ($SearchPattern) for device: $($device.deviceDisplayName)"
+                Write-Host "Found $ResultCount search results matching pattern ($SearchPattern) for device: $($device.deviceDisplayName)"
                 Foreach($Match in $SearchResults){
                     $Results += [PSCustomObject]@{
                         deviceDisplayName = $device.deviceDisplayName

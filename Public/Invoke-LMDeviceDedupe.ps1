@@ -19,7 +19,7 @@ Function Invoke-LMDeviceDedupe {
     #Check if we are logged in and have valid api creds
     Begin {}
     Process {
-        If ($Script:LMAuth.Valid) {
+        If ($(Get-LMAccountStatus).Valid) {
             $DeviceList = @()
 
             $IpExclusionList += @("127.0.0.1","::1")
@@ -178,13 +178,13 @@ Function Invoke-LMDeviceDedupe {
                     ElseIf($RemoveDuplicates){
                         Foreach($Device in $OutputList){
                             #Remove duplicate devices
-                            Write-LMHost "Removing device ($($Device.duplicate_deviceId)) $($Device.duplicate_displayName) for reason: $($Device.duplicate_reason)"
+                            Write-Host "Removing device ($($Device.duplicate_deviceId)) $($Device.duplicate_displayName) for reason: $($Device.duplicate_reason)"
                             Remove-LMDevice -Id $Device.duplicate_deviceId
                         }
                     }
                 }
                 Else{
-                    Write-LMHost "No duplicates detected based on set parameters."
+                    Write-Host "No duplicates detected based on set parameters."
                 }
             }
         }

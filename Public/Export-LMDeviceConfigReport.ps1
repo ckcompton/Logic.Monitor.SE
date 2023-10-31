@@ -68,7 +68,7 @@ Function Export-LMDeviceConfigReport {
     )
 
     #Check if we are logged in and have valid api creds
-    If ($Script:LMAuth.Valid) {
+    If ($(Get-LMAccountStatus).Valid) {
 
         If($DeviceId){
             $network_devices = Get-LMDevice -id $DeviceId
@@ -79,12 +79,12 @@ Function Export-LMDeviceConfigReport {
 
         #Loop through Network group devices and pull list of applied ConfigSources
         $instance_list = @()
-        Write-LMHost -Message "Found $(($network_devices | Measure-Object).Count) devices."
+        Write-Host -Message "Found $(($network_devices | Measure-Object).Count) devices."
         Foreach ($device in $network_devices) {
-            Write-LMHost -Message "Collecting configurations for: $($device.displayName)"
+            Write-Host -Message "Collecting configurations for: $($device.displayName)"
             $device_config_sources = Get-LMDeviceDatasourceList -id $device.id | Where-Object { $_.dataSourceType -eq "CS" -and $_.instanceNumber -gt 0 -and $_.dataSourceName -match $ConfigSourceNameFilter }
 
-            Write-LMHost -Message " [INFO]: Found $(($device_config_sources | Measure-Object).Count) configsource(s) with discovered instances using match filter ($ConfigSourceNameFilter)." -ForegroundColor Gray
+            Write-Host -Message " [INFO]: Found $(($device_config_sources | Measure-Object).Count) configsource(s) with discovered instances using match filter ($ConfigSourceNameFilter)." -ForegroundColor Gray
             #Loop through DSes and pull all instances matching running or current and add them to processing list
             $filtered_config_instance_count = 0
             Foreach ($config_source in $device_config_sources) {
@@ -106,7 +106,7 @@ Function Export-LMDeviceConfigReport {
                     }
                 }
             }
-            Write-LMHost -Message " [INFO]: Found $filtered_config_instance_count configsource instance(s) using match filter ($InstanceNameFilter)."  -ForegroundColor Gray
+            Write-Host -Message " [INFO]: Found $filtered_config_instance_count configsource instance(s) using match filter ($InstanceNameFilter)."  -ForegroundColor Gray
         }
 
         #Loop through filtered instance list and pull config diff
@@ -129,11 +129,11 @@ Function Export-LMDeviceConfigReport {
             
             #Group Configs by device so we can work through each set
             $config_grouping = $device_configs | Group-Object -Property deviceId
-            Write-LMHost -Message "Collecting latest device configurations from $(($config_grouping | Measure-Object).Count) devices."
+            Write-Host -Message "Collecting latest device configurations from $(($config_grouping | Measure-Object).Count) devices."
 
             #Loop through each set and built report
             Foreach ($device in $config_grouping) {
-                Write-LMHost -Message " [INFO]: Found $(($device.Group | Measure-Object).Count) configsource instance version(s) for: $($device.deviceDisplayName) matching selected range of last $DaysBack day(s)"  -ForegroundColor Gray
+                Write-Host -Message " [INFO]: Found $(($device.Group | Measure-Object).Count) configsource instance version(s) for: $($device.deviceDisplayName) matching selected range of last $DaysBack day(s)"  -ForegroundColor Gray
                 Foreach ($config in $device.Group) {
                     Foreach ($line in $config.deltaConfig) {
                         $output_list += [PSCustomObject]@{
@@ -162,7 +162,7 @@ Function Export-LMDeviceConfigReport {
             }
         }
         Else{
-            Write-LMHost -Message "Did not find any configs to output based on date range selected ($DaysBack days), check your parameters and try again." -ForegroundColor Yellow
+            Write-Host -Message "Did not find any configs to output based on date range selected ($DaysBack days), check your parameters and try again." -ForegroundColor Yellow
         }
         
     }

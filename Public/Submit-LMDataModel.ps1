@@ -28,7 +28,7 @@ Function Submit-LMDataModel{
     )
     Begin{
         #Check if we are logged in and have valid api creds
-        If ($Script:LMAuth.Type -ne "Bearer") {
+        If ($(Get-LMAccountStatus).Type -ne "Bearer") {
             Write-Error "Push Metrics API only supports Bearer Token auth, please re-connect using a valid bearer token."
         }
         return
@@ -42,17 +42,17 @@ Function Submit-LMDataModel{
         #Loop through models and submit for ingest
         $ModelCount = ($ModelObject.Datasources | Measure-Object).Count
 
-        Write-LMHost "=========================================================================" -ForegroundColor White
-        Write-LMHost "|                  BEGIN PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
-        Write-LMHost "=========================================================================" -ForegroundColor White
-        Write-LMHost "Model contains $ModelCount datasource(s) for ingest, beinging processing."
+        Write-Host "=========================================================================" -ForegroundColor White
+        Write-Host "|                  BEGIN PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
+        Write-Host "=========================================================================" -ForegroundColor White
+        Write-Host "Model contains $ModelCount datasource(s) for ingest, beinging processing."
         Foreach($Model in $ModelObject.Datasources){
             $InstCount = ($Model.Instances | Measure-Object).Count
             $DpCount = ($Model.Datapoints | Measure-Object).Count
             $GCount = ($Model.Graphs | Measure-Object).Count
             $OGCount = ($Model.OverviewGraphs | Measure-Object).Count
-            Write-LMHost "Model loaded for datasource $($Model.Defenition.Name) using device $($ModelObject.DisplayName) and simulation type $($ModelObject.SimulationType)."
-            Write-LMHost "Model contains $InstCount instance(s), each with $DpCount datapoint(s) and $($GCount + $OGCount) graph definition(s)."
+            Write-Host "Model loaded for datasource $($Model.Defenition.Name) using device $($ModelObject.DisplayName) and simulation type $($ModelObject.SimulationType)."
+            Write-Host "Model contains $InstCount instance(s), each with $DpCount datapoint(s) and $($GCount + $OGCount) graph definition(s)."
 
             #Loop through instances and generate instance and dp objects
             $InstanceArray = [System.Collections.Generic.List[object]]::New()
@@ -80,11 +80,11 @@ Function Submit-LMDataModel{
             $DatasourceName = $Model.Defenition.Name.Replace("-","") + $DatasourceSuffix
             $ResourceIds = @{"system.hostname"=$DeviceHostName;"system.displayname"=$DeviceDisplayName}
 
-            Write-LMHost "Submitting PushMetric to ingest."
+            Write-Host "Submitting PushMetric to ingest."
             If($ModelObject.Properties){$ModelObject.Properties.PSObject.Properties | ForEach-Object -begin {$DevicePropertyHash=@{}} -process {$DevicePropertyHash."$($_.Name)" = $_.Value}}
             $Result = Send-LMPushMetric -Instances $InstanceArray -DatasourceGroup $DatasourceGroup -DatasourceDisplayName $DatasourceDisplayName -DatasourceName $DatasourceName -ResourceIds $ResourceIds -ResourceProperties $DevicePropertyHash -NewResourceHostName $DeviceHostName
 
-            Write-LMHost "PushMetric submitted with status: $($Result.message)  @($($Result.timestamp))"
+            Write-Host "PushMetric submitted with status: $($Result.message)  @($($Result.timestamp))"
             #Apply graph definitions if they do not exist yet
             Write-Debug "Checking if datasource $DatasourceName has been created yet"
             $PMDatasource = Get-LMDatasource -Name $DatasourceName
@@ -152,9 +152,9 @@ Function Submit-LMDataModel{
         }
     }
     End{
-        Write-LMHost "=========================================================================" -ForegroundColor White
-        Write-LMHost "|                  END PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
-        Write-LMHost "=========================================================================" -ForegroundColor White
+        Write-Host "=========================================================================" -ForegroundColor White
+        Write-Host "|                  END PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
+        Write-Host "=========================================================================" -ForegroundColor White
     }
 }
 
