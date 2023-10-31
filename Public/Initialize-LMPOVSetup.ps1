@@ -470,7 +470,7 @@ Function Initialize-LMPOVSetup {
                         "propertyrules" {Get-LMPropertySource -name $ModuleName}
                         default {Get-LMDataSource -name $ModuleName}
                     }
-                    If(!$LogicModule){                
+                    If(!$LogicModule){
                         Try{
                             $LogicModule = (Invoke-WebRequest -Uri "$GitubURI/$($Module.repo)/$($Module.name)").Content
                             Import-LMLogicModule -File $LogicModule -Type $Module.type -ErrorAction Stop
