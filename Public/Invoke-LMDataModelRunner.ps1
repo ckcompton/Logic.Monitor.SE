@@ -76,6 +76,10 @@ Function Invoke-LMDataModelRunner {
         [Switch]$RunPreFlightScripts
     )
 
+    
+    #Load models
+    $Models = (Get-ChildItem "$ModelPath\Models" -Filter *.json).FullName | ForEach-Object {Get-Content $_ -Raw | ConvertFrom-Json -Depth 10}
+
     #Load any model specific scripts/funcitons
     If($RunPreFlightScripts){
         $AdditionalScripts = @( Get-ChildItem -Path $ModelPath\Scripts\*.ps1 -ErrorAction SilentlyContinue -Recurse)
@@ -83,16 +87,14 @@ Function Invoke-LMDataModelRunner {
         #Dot source the files
         Foreach ($import in @($AdditionalScripts)) {
             Try {
-                . $import.fullname
+                #Run preflight scripts pass our models and connection details for usage
+                . $import.fullname -Models $Models -BearerToken $BearerToken -AccountName $AccountName
             }
             Catch {
                 Write-Error -Message "Failed to import function $($import.fullname): $_"
             }
         }
     }
-
-    #Load models
-    $Models = (Get-ChildItem "$ModelPath\Models" -Filter *.json).FullName | ForEach-Object {Get-Content $_ -Raw | ConvertFrom-Json -Depth 10}
 
     $TotalResults = Measure-Command {
         #Run models
