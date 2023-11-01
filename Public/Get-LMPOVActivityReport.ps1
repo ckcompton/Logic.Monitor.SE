@@ -1,4 +1,4 @@
-Function Get-POVActivityReport{
+Function Get-LMPOVActivityReport{
     Param(
         [String]$Portal ,
 

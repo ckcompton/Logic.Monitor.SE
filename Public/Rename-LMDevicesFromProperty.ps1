@@ -2,12 +2,12 @@ Function Rename-LMDevicesFromProperty{
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory,ValueFromPipeline)]
-        $Device,
+        [System.Object[]]$Device,
 
-        $SourceProperty = "system.sysname",
+        [String]$SourceProperty = "system.sysname",
 
         [ValidateSet("system","custom","auto")]
-        $PropertyType = "system"
+        [String]$PropertyType = "system"
     )
     Begin{
         If($(Get-LMAccountStatus).Valid){}Else{Write-Error "Please ensure you are logged in before running any commands, use Connect-LMAccount to login and try again.";return}

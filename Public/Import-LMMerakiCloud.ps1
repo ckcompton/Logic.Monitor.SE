@@ -39,10 +39,10 @@ Currently a beta command, meraki cloud import is still under developement, pleas
 None. You cannot pipe objects to this command.
 
 .LINK
-Module repo: https://github.com/stevevillardi/Logic.Monitor
+Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
 
 .LINK
-PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor
+PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
 #>
 Function Import-LMMerakiCloud {
     [CmdletBinding(DefaultParameterSetName="Import")]
