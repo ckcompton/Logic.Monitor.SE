@@ -68,6 +68,9 @@ Function Invoke-LMDataModelRunner {
         [Parameter(ParameterSetName = 'LogResult')]
         [Hashtable]$LogResourceId,
 
+        [Parameter(ParameterSetName = 'LogResult')]
+        [Hashtable]$LogAdditionalMetadata,
+
         [Int]$ConcurrencyLimit = 5,
 
         [Switch]$RunPreFlightScripts
@@ -121,7 +124,7 @@ Function Invoke-LMDataModelRunner {
             #Send Log Message with Result
             If($using:LogResult){
                 $DSList = $_.Datasources.DatasourceName -join ","
-                Send-LMLogMessage -Message $LastRunLog -resourceMapping $using:LogResourceId -Metadata @{"simulationType"=$_.SimulationType;"datasourceList"=$DSList;"modelRuntimeInMin"=$ModelTime;"logSource"=$using:LogSourceName}
+                Send-LMLogMessage -Message $LastRunLog -resourceMapping $using:LogResourceId -Metadata $($LogAdditionalMetadata + @{"modelSimulationType"=$_.SimulationType;"modelDatasourceList"=$DSList;"modelRuntimeInMin"=$ModelTime;"modelLogSource"=$using:LogSourceName;"modelDeviceDisplayName"=$_.DisplayName})
             }
 
             #Disconnect from portal
