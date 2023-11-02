@@ -100,11 +100,12 @@ Function Invoke-LMDataModelRunner {
         #Run models
         $Models | ForEach-Object -Parallel {
             #Manually load modules since running as a job they are not automatically loaded
-            Import-Module Microsoft.PowerShell.SecretStore
-            Import-Module Microsoft.PowerShell.SecretManagement
+            Import-Module Microsoft.PowerShell.SecretStore -ErrorAction SilentlyContinue
+            Import-Module Microsoft.PowerShell.SecretManagement -ErrorAction SilentlyContinue
             Import-Module Logic.Monitor -ErrorAction SilentlyContinue
             Import-Module Logic.Monitor.SE -ErrorAction SilentlyContinue
 
+            #Dev module import for testing, not needed for production
             Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor/Dev.Logic.Monitor.psd1 -Force -ErrorAction SilentlyContinue
             Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor.SE/Dev.Logic.Monitor.SE.psd1 -Force -ErrorAction SilentlyContinue
 
@@ -113,15 +114,15 @@ Function Invoke-LMDataModelRunner {
 
             #Start last run log
             $RunnerTranscriptPath = "$using:ModelPath\$($_.DisplayName)-$using:LogFileName"
-            If($using:LogResult){Start-Transcript -Path $RunnerTranscriptPath -UseMinimalHeader}
+            If($using:LogResult){Start-Transcript -Path $RunnerTranscriptPath -UseMinimalHeader -ErrorAction SilentlyContinue}
             
             $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_}
             $ModelTime = [Math]::Round(($ModelResult).TotalMinutes,2)
 
             #End last run log
-            If($using:LogResult){Stop-Transcript}
+            If($using:LogResult){Stop-Transcript -ErrorAction SilentlyContinue}
 
-            $LastRunLog = Get-Content $RunnerTranscriptPath -Raw
+            $LastRunLog = Get-Content $RunnerTranscriptPath -Raw -ErrorAction SilentlyContinue
 
             #Send Log Message with Result
             If($using:LogResult){
