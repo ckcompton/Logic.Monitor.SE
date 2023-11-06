@@ -21,6 +21,11 @@ Module repo: https://github.com/stevevillardi/Logic.Monitor
 PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor
 #>
 Function ConvertTo-LMDynamicGroupFromCategories {
+    Param(
+        [String[]]$ExcludeCategoryList = @("TopoSwitch","snmpTCPUDP","LogicMonitorPortal","snmp","snmpUptime","snmpHR","email rtt","email transit","collector"),
+
+        [String]$DefaultGroupName = "Devices by Category"
+    )
 
     $device_list = @()
     $category_list = @()
@@ -40,25 +45,46 @@ Function ConvertTo-LMDynamicGroupFromCategories {
 
     #Loop through custom object and aggregate categories
     foreach ($category in $device_list.categories) {
-        $category_list += $category
+        If(($category -notin $ExcludeCategoryList) -and ($category -isnot $null)){
+            $category_list += $category
+        }
     }
 
     #Dedupe list down to unique values
     $category_list = $category_list | Select-Object -Unique
+    $category_list
+    Write-Host "Found $($category_list.count) categories for creation"
 
     #Grab id for devices by type folder (could optionally be set to any group)
-    $root_group = (Get-LMDeviceGroup -Name "Devices by Type").id
+    $root_group = (Get-LMDeviceGroup -Name $DefaultGroupName).id
 
     #if we have a matching folder continue
     if ($root_group) {
+        Write-Host "$DefaultGroupName already created, checking existing dynamic groups"
+
         #Grab list of dynamic groups currently inside root group
         $current_groups = (Get-LMDeviceGroupGroups -Id $root_group).name
 
         #Compare the group list and pull out anything we already created or matches existing groups
-        $creation_list = (Compare-Object -ReferenceObject $current_groups -DifferenceObject $category_list.Replace("/", " ").Replace("_", " ") | Where-Object { $_.SideIndicator -eq "=>" }).InputObject
+        If($current_groups){
+            $creation_list = (Compare-Object -ReferenceObject $current_groups -DifferenceObject $category_list.Replace("/", " ").Replace("_", " ") | Where-Object { $_.SideIndicator -eq "=>" }).InputObject
+        }
+        else{
+            $creation_list = $category_list.Replace("/", " ").Replace("_", " ")
+        }
     
         #Loop trough category list and create any groups not already exisitng
         foreach ($group in $creation_list) {
+            $name = $group.Replace("/", " ").Replace("_", " ")
+            New-LMDeviceGroup -Name $name -AppliesTo "hasCategory(`"$group`")" -ParentGroupId $root_group -Description "Auto created by PowerShell module"
+        }
+    }
+    Else{
+        Write-Host "$DefaultGroupName not found, creating device group for category creation"
+        $root_group = New-LMDeviceGroup -Name $DefaultGroupName -Description "Auto created by PowerShell module" -ParentGroupId 1
+
+        #Loop trough category list and create any groups not already exisitng
+        foreach ($group in $category_list.Replace("/", " ").Replace("_", " ")) {
             $name = $group.Replace("/", " ").Replace("_", " ")
             New-LMDeviceGroup -Name $name -AppliesTo "hasCategory(`"$group`")" -ParentGroupId $root_group -Description "Auto created by PowerShell module"
         }
