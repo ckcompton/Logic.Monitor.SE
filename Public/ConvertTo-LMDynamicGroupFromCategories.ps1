@@ -45,7 +45,7 @@ Function ConvertTo-LMDynamicGroupFromCategories {
 
     #Loop through custom object and aggregate categories
     foreach ($category in $device_list.categories) {
-        If(($category -notin $ExcludeCategoryList) -and ($category -isnot $null)){
+        If(($category -notin $ExcludeCategoryList) -and ($null -isnot $category)){
             $category_list += $category
         }
     }
