@@ -22,7 +22,7 @@ PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor
 #>
 Function ConvertTo-LMDynamicGroupFromCategories {
     Param(
-        [String[]]$ExcludeCategoryList = @("TopoSwitch","snmpTCPUDP","LogicMonitorPortal","snmp","snmpUptime","snmpHR","email rtt","email transit","collector"),
+        [String[]]$ExcludeCategoryList = @("TopoSwitch","snmpTCPUDP","LogicMonitorPortal","snmp","snmpUptime","snmpHR","Netsnmp","email rtt","email transit","collector","NoPing","NoHTTPS"),
 
         [String]$DefaultGroupName = "Devices by Category"
     )
@@ -45,14 +45,13 @@ Function ConvertTo-LMDynamicGroupFromCategories {
 
     #Loop through custom object and aggregate categories
     foreach ($category in $device_list.categories) {
-        If(($category -notin $ExcludeCategoryList) -and ($null -isnot $category)){
+        If((!$ExcludeCategoryList.Contains($category)) -and ($category)){
             $category_list += $category
         }
     }
 
     #Dedupe list down to unique values
     $category_list = $category_list | Select-Object -Unique
-    $category_list
     Write-Host "Found $($category_list.count) categories for creation"
 
     #Grab id for devices by type folder (could optionally be set to any group)
