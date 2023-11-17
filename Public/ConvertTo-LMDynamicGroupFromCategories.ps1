@@ -85,7 +85,7 @@ Function ConvertTo-LMDynamicGroupFromCategories {
         #Loop trough category list and create any groups not already exisitng
         foreach ($group in $category_list.Replace("/", " ").Replace("_", " ")) {
             $name = $group.Replace("/", " ").Replace("_", " ")
-            New-LMDeviceGroup -Name $name -AppliesTo "hasCategory(`"$group`")" -ParentGroupId $root_group -Description "Auto created by PowerShell module"
+            New-LMDeviceGroup -Name $name -AppliesTo "hasCategory(`"$group`")" -ParentGroupId $root_group.id -Description "Auto created by PowerShell module"
         }
     }
 }

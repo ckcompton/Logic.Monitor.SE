@@ -200,8 +200,11 @@ Function Build-LMDataModel {
 
     $PropertiesHash = @{}
     If($IncludeModelDeviceProperties){
-        $Properties = $($ModelDevice.autoProperties + $ModelDevice.customProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.cert|.secret|.user|system.|.id"}
-
+        $Properties = $($ModelDevice.autoProperties + $ModelDevice.customProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.authToken||.privToken|.token|.cert|.secret|.user|system.|.id"}
+        
+        #Remove null props if they exist
+        @($Properties.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($Properties[$_])) { $Properties.Remove($_) } }
+        
         Foreach ($Prop in $Properties){
             $Prop.name = "autodiscovery." + $Prop.name.replace("auto.","")
             $PropertiesHash.Add($Prop.name,$Prop.value)
