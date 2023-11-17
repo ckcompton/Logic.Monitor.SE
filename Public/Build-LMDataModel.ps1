@@ -115,7 +115,7 @@ Function Build-LMDataModel {
         #Grab specified source DS for DatasourceName so we can model it for PushMetrics
         Write-Debug "Using provided datasource name ($DatasourceName) as model candidate."
         $DatasourceInfo = Get-LMDatasource -Name $DatasourceName
-        $Datasource = $DatasourceInfo | Select-Object description,tags,name,displayName,collectInterval,hasMultiInstances,dataPoints
+        $Datasource = $DatasourceInfo | Select-Object description,group,tags,name,displayName,collectInterval,hasMultiInstances,dataPoints
         #Do we have a valid DS to model
         If($Datasource){
             #Extract what we need from the source datasource to use as basis for modeling
@@ -202,13 +202,13 @@ Function Build-LMDataModel {
     If($IncludeModelDeviceProperties){
         $Properties = $($ModelDevice.autoProperties + $ModelDevice.customProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.authToken||.privToken|.token|.cert|.secret|.user|system.|.id"}
         
-        #Remove null props if they exist
-        @($Properties.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($Properties[$_])) { $Properties.Remove($_) } }
-        
         Foreach ($Prop in $Properties){
             $Prop.name = "autodiscovery." + $Prop.name.replace("auto.","")
             $PropertiesHash.Add($Prop.name,$Prop.value)
         }
+        
+        #Remove null props if they exist
+        @($PropertiesHash.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($PropertiesHash[$_])) { $PropertiesHash.Remove($_) } }
     }
 
     $DeviceModel = [PSCustomObject]@{
@@ -291,12 +291,15 @@ Function Build-Instance {
             
             If($IncludeModelDeviceProperties){
                 $PropertiesHash = @{}
-                $Properties = $($Instance.customProperties + $Instance.autoProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.cert|.secret|.user|system.|.id"}
+                $Properties = $($Instance.customProperties + $Instance.autoProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.authToken||.privToken|.token|.cert|.secret|.user|system.|.id"}
 
                 Foreach ($Prop in $Properties){
                     $Prop.name = "autodiscovery." + $Prop.name.replace("auto.","")
                     $PropertiesHash.Add($Prop.name,$Prop.value)
                 }
+
+                #Remove null props if they exist
+                @($PropertiesHash.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($PropertiesHash[$_])) { $PropertiesHash.Remove($_) } }
             }
 
             $Instances.Add([PSCustomObject]@{
