@@ -14,8 +14,17 @@ The suffix appended to all created PushMetrics DSes, defaults to _PMv1 if not se
 .PARAMETER ForceGraphProvisioning
 Will force and attempt to provision datasource graphs regarless if they already exist or not
 
+.PARAMETER ConcurrencyLimit
+Number of models to process in parallel, defaults to 5. Running too many concurrently can result in 429 errors.
+
+.PARAMETER BearerToken
+Logic Monitor bearer token for connecting to the targeted portal
+
+.PARAMETER AccountName
+LogicMontior Portal to submit models to
+
 .EXAMPLE
-Submit-LMDataModel -ModelObject $Model -DatasourceSuffix "_PMv1" -ForceGraphProvisioning
+Submit-LMDataModel -ModelObject $Model -DatasourceSuffix "_PMv1" -ForceGraphProvisioning -BearerToken XXXXXXX -AccountName portal_name
 
 .INPUTS
 None. You cannot pipe objects to this command.
@@ -26,7 +35,7 @@ Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
 .LINK
 PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
 #>
-Function Submit-LMDataModel{
+Function Submit-LMDataModelConcurrent{
     [CmdletBinding()]
     Param(
         [Parameter(ValueFromPipeline,Mandatory)]
@@ -47,7 +56,15 @@ Function Submit-LMDataModel{
 
         [String]$DatasourceSuffix = "_PMv1",
 
-        [Switch]$ForceGraphProvisioning
+        [Switch]$ForceGraphProvisioning,
+
+        [Int]$ConcurrencyLimit = 1,
+
+        [Parameter(Mandatory)]
+        [String]$BearerToken,
+
+        [Parameter(Mandatory)]
+        [String]$AccountName
     )
     Begin{
         #Check if we are logged in and have valid api creds
@@ -57,11 +74,6 @@ Function Submit-LMDataModel{
         return
     }
     Process{
-        #Silently try to convert from JSON incase supplied object is loaded from a JSON file
-        If($ModelJson){
-            Write-Debug "Model format detected as JSON, converting to PSObject."
-            $ModelObject = $ModelJson | ConvertFrom-Json -Depth 10
-        }
         #Loop through models and submit for ingest
         $ModelCount = ($ModelObject.Datasources | Measure-Object).Count
 
@@ -69,22 +81,128 @@ Function Submit-LMDataModel{
         Write-Host "|                  BEGIN PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
         Write-Host "=========================================================================" -ForegroundColor White
         Write-Host "Model contains $ModelCount datasource(s) for ingest, beinging processing."
-        
-        Foreach($Model in $ModelObject.Datasources){
-            $InstCount = ($Model.Instances | Measure-Object).Count
-            $DpCount = ($Model.Datapoints | Measure-Object).Count
-            $GCount = ($Model.Graphs | Measure-Object).Count
-            $OGCount = ($Model.OverviewGraphs | Measure-Object).Count
-            Write-Host "Model loaded for datasource $($Model.Defenition.Name) using device $($ModelObject.DisplayName) and simulation type $($ModelObject.SimulationType)."
+        $ModelObject.Datasources | ForEach-Object -Parallel {
+            Function Generate-LMData {
+                [CmdletBinding()]
+                Param(
+                    $Datapoint,
+                    $Instance,
+                    $SimulationType
+                )
+                #If we have instance data from our model, use that instead
+                If($Instance.Data){
+                    $FilteredData = $Instance.Data | Where-Object {$_."$($Datapoint.Name)" -ne "No Data"}
+                    If($FilteredData){
+            
+                        $TotalDPs = ($FilteredData | Measure-Object).Count - 1
+                        $Variance = 5 #Introduce some variation into slected index so we dont have as many duplicate polls when the sample size is smaller than 100
+                        [Int]$TimeSlice = Get-Date -Format %Hmm 
+                        $TimePercentage = $TimeSlice/2359
+                        $IndexValue = [Math]::Floor($(Get-Random -Minimum $([decimal]($TotalDPs * $TimePercentage) - $Variance) -Maximum $([decimal]($TotalDPs * $TimePercentage) + $Variance)))
+                        If($IndexValue -ge $TotalDPs){$IndexValue = -1} #If we go out of index, set to last item
+                        If($IndexValue -lt 0){$IndexValue = -0} #If we go our of index set to first item
+                        $Value = $FilteredData[$IndexValue]."$($Datapoint.Name)"
+            
+                        Write-Debug "Generated value of ($Value) for datapoint ($($Instance.Name)-$($Datapoint.Name)) using data provided with the model."
+                    }
+                    Else{
+                        $Value = Switch($Datapoint.MetricType){
+                            "Rate" {
+                                Get-Random -Minimum 0 -Maximum 125000
+                            }
+                            "Percentage" {
+                                Get-Random -Minimum 0 -Maximum 100
+                            }
+                            "IO-Latency" {
+                                Get-Random -Minimum 0 -Maximum 125000
+                            }
+                            "SpaceUsage" {
+                                Get-Random -Minimum 0 -Maximum 322122547200
+                            }
+                            "Status" {
+                                If($Datapoint.MinValue -and $Datapoint.MaxValue){
+                                    Get-Random -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
+                                }
+                                Else{
+                                    Get-Random -Minimum 0 -Maximum 5
+                                }
+                            }
+                            Default {
+                                Get-Random -Minimum 0 -Maximum 1000
+                            }
+                        }
+                        Write-Debug "No instance data found for datapoint ($($Instance.Name)-$($Datapoint.Name)) using generated value of $($Datapoint.MetricType):($Value) as fallback."
+                    }
+            
+                }
+                Else{
+                    Switch($SimulationType){
+                        "replicaiton" {
+                            #TODO
+                        }
+                        "8to5" {
+                            #TODO
+                        }
+                        default {
+                            $Value = Switch($Datapoint.MetricType){
+                                "Rate" {
+                                    Get-Random -Minimum 0 -Maximum 125000
+                                }
+                                "Percentage" {
+                                    Get-Random -Minimum 0 -Maximum 100
+                                }
+                                "IO-Latency" {
+                                    Get-Random -Minimum 0 -Maximum 125000
+                                }
+                                "SpaceUsage" {
+                                    Get-Random -Minimum 0 -Maximum 322122547200
+                                }
+                                "Status" {
+                                    If($Datapoint.MinValue -and $Datapoint.MaxValue){
+                                        Get-Random -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
+                                    }
+                                    Else{
+                                        Get-Random -Minimum 0 -Maximum 5
+                                    }
+                                }
+                                Default {
+                                    Get-Random -Minimum 0 -Maximum 1000
+                                }
+                            }
+                        }
+                    }
+                    Write-Debug "Generated value of ($Value) for datapoint ($($Instance.Name)-$($Datapoint.Name)) using metric type ($($Datapoint.MetricType)) and model simulation type ($SimulationType)."
+                }
+                Return $Value
+            }
+
+            #Manually load modules since running as a job they are not automatically loaded
+            Import-Module Microsoft.PowerShell.SecretStore -ErrorAction SilentlyContinue
+            Import-Module Microsoft.PowerShell.SecretManagement -ErrorAction SilentlyContinue
+            Import-Module Logic.Monitor -ErrorAction SilentlyContinue
+            Import-Module Logic.Monitor.SE -ErrorAction SilentlyContinue
+
+            #Dev module import for testing, not needed for production
+            Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor/Dev.Logic.Monitor.psd1 -Force -ErrorAction SilentlyContinue
+            Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor.SE/Dev.Logic.Monitor.SE.psd1 -Force -ErrorAction SilentlyContinue
+
+            #Connect to portal
+            Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName
+
+            $InstCount = ($_.Instances | Measure-Object).Count
+            $DpCount = ($_.Datapoints | Measure-Object).Count
+            $GCount = ($_.Graphs | Measure-Object).Count
+            $OGCount = ($_.OverviewGraphs | Measure-Object).Count
+            Write-Host "Model loaded for datasource $($_.Defenition.Name) using device $($Using:ModelObject.DisplayName) and simulation type $($Using:ModelObject.SimulationType)."
             Write-Host "Model contains $InstCount instance(s), each with $DpCount datapoint(s) and $($GCount + $OGCount) graph definition(s)."
 
             #Loop through instances and generate instance and dp objects
             $InstanceArray = [System.Collections.Generic.List[object]]::New()
-            Foreach($Instance in $Model.Instances){
+            Foreach($Instance in $_.Instances){
                 Write-Debug "Processing datapoints for instance $($Instance.Name)."
                 $Datapoints = [System.Collections.Generic.List[object]]::New()
-                Foreach($Datapoint in $Model.Datapoints){
-                    $Value = Generate-LMData -Datapoint $Datapoint -Instance $Instance -SimulationType $ModelObject.SimulationType
+                Foreach($Datapoint in $_.Datapoints){
+                    $Value = Generate-LMData -Datapoint $Datapoint -Instance $Instance -SimulationType $Using:ModelObject.SimulationType
                     $Datapoints.Add([PSCustomObject]@{
                         Name = $Datapoint.Name
                         Description = $Datapoint.Description
@@ -97,15 +215,15 @@ Function Submit-LMDataModel{
             }
 
             #Submit PushMetric to portal
-            $DeviceHostName = $ModelObject.HostName
-            $DeviceDisplayName = $ModelObject.DisplayName
-            $DatasourceGroup =  $Model.DatasourceGroupName
-            $DatasourceDisplayName = $Model.Defenition.displayName
-            $DatasourceName = $Model.Defenition.Name.Replace("-","") + $DatasourceSuffix
+            $DeviceHostName = $Using:ModelObject.HostName
+            $DeviceDisplayName = $Using:ModelObject.DisplayName
+            $DatasourceGroup =  $_.DatasourceGroupName
+            $DatasourceDisplayName = $_.Defenition.displayName
+            $DatasourceName = $_.Defenition.Name.Replace("-","") + $Using:DatasourceSuffix
             $ResourceIds = @{"system.hostname"=$DeviceHostName;"system.displayname"=$DeviceDisplayName}
 
             Write-Host "Submitting PushMetric to ingest."
-            If($ModelObject.Properties){$ModelObject.Properties.PSObject.Properties | ForEach-Object -begin {$DevicePropertyHash=@{}} -process {$DevicePropertyHash."$($_.Name)" = $_.Value}}
+            If($Using:ModelObject.Properties){$Using:ModelObject.Properties.PSObject.Properties | ForEach-Object -begin {$DevicePropertyHash=@{}} -process {$DevicePropertyHash."$($_.Name)" = $_.Value}}
             $Result = Send-LMPushMetric -Instances $InstanceArray -DatasourceGroup $DatasourceGroup -DatasourceDisplayName $DatasourceDisplayName -DatasourceName $DatasourceName -ResourceIds $ResourceIds -ResourceProperties $DevicePropertyHash -NewResourceHostName $DeviceHostName
 
             Write-Host "PushMetric submitted with status: $($Result.message)  @($($Result.timestamp))"
@@ -117,9 +235,9 @@ Function Submit-LMDataModel{
                 $PMGraphs = Get-LMDatasourceGraph -DataSourceId $PMDatasource.Id
                 $PMOverviewGraphs = Get-LMDatasourceOverviewGraph -DataSourceId $PMDatasource.Id
 
-                If((!$PMGraphs -or $ForceGraphProvisioning) -and $Model.Graphs){
+                If((!$PMGraphs -or $Using:ForceGraphProvisioning) -and $_.Graphs){
                     Write-Debug "No instance graphs found or force creation specified, importing graph definitions from model."
-                    Foreach($Graph in $Model.Graphs){
+                    Foreach($Graph in $_.Graphs){
                         Write-Debug "Importing instance graph $($Graph.Name)."
                         #Update datapointIDs in each graph so they match the new push module
                         Foreach($Datapoint in $Graph.datapoints){
@@ -143,9 +261,9 @@ Function Submit-LMDataModel{
                 Else{
                     Write-Debug "Existing instance graphs found or none included with selected model, skipping importing instance graph definitions."
                 }
-                If((!$PMOverviewGraphs -or $ForceGraphProvisioning) -and $Model.OverviewGraphs){
+                If((!$PMOverviewGraphs -or $Using:ForceGraphProvisioning) -and $_.OverviewGraphs){
                     Write-Debug "No overview graphs found or force creation specified, importing graph definitions from model."
-                    Foreach($OverviewGraph in $Model.OverviewGraphs){
+                    Foreach($OverviewGraph in $_.OverviewGraphs){
                         Write-Debug "Importing overview graph $($OverviewGraph.Name)."
                         #Update datapointIDs in each graph so they match the new push module
                         Foreach($Datapoint in $OverviewGraph.datapoints){
@@ -173,105 +291,11 @@ Function Submit-LMDataModel{
             Else{
                 Write-Debug "$DatasourceName not found, will recheck on next submission."
             }
-        }
+        } -ThrottleLimit $ConcurrencyLimit
     }
     End{
         Write-Host "=========================================================================" -ForegroundColor White
         Write-Host "|                  END PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
         Write-Host "=========================================================================" -ForegroundColor White
     }
-}
-
-Function Generate-LMData {
-    [CmdletBinding()]
-    Param(
-        $Datapoint,
-        $Instance,
-        $SimulationType
-    )
-    #If we have instance data from our model, use that instead
-    If($Instance.Data){
-        $FilteredData = $Instance.Data | Where-Object {$_."$($Datapoint.Name)" -ne "No Data"}
-        If($FilteredData){
-
-            $TotalDPs = ($FilteredData | Measure-Object).Count - 1
-            $Variance = 5 #Introduce some variation into slected index so we dont have as many duplicate polls when the sample size is smaller than 100
-            [Int]$TimeSlice = Get-Date -Format %Hmm 
-            $TimePercentage = $TimeSlice/2359
-            $IndexValue = [Math]::Floor($(Get-Random -Minimum $([decimal]($TotalDPs * $TimePercentage) - $Variance) -Maximum $([decimal]($TotalDPs * $TimePercentage) + $Variance)))
-            If($IndexValue -ge $TotalDPs){$IndexValue = -1} #If we go out of index, set to last item
-            If($IndexValue -lt 0){$IndexValue = -0} #If we go our of index set to first item
-            $Value = $FilteredData[$IndexValue]."$($Datapoint.Name)"
-
-            Write-Debug "Generated value of ($Value) for datapoint ($($Instance.Name)-$($Datapoint.Name)) using data provided with the model."
-        }
-        Else{
-            $Value = Switch($Datapoint.MetricType){
-                "Rate" {
-                    Get-Random -Minimum 0 -Maximum 125000
-                }
-                "Percentage" {
-                    Get-Random -Minimum 0 -Maximum 100
-                }
-                "IO-Latency" {
-                    Get-Random -Minimum 0 -Maximum 125000
-                }
-                "SpaceUsage" {
-                    Get-Random -Minimum 0 -Maximum 322122547200
-                }
-                "Status" {
-                    If($Datapoint.MinValue -and $Datapoint.MaxValue){
-                        Get-Random -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
-                    }
-                    Else{
-                        Get-Random -Minimum 0 -Maximum 5
-                    }
-                }
-                Default {
-                    Get-Random -Minimum 0 -Maximum 1000
-                }
-            }
-            Write-Debug "No instance data found for datapoint ($($Instance.Name)-$($Datapoint.Name)) using generated value of $($Datapoint.MetricType):($Value) as fallback."
-        }
-
-    }
-    Else{
-        Switch($SimulationType){
-            "replicaiton" {
-                #TODO
-            }
-            "8to5" {
-                #TODO
-            }
-            default {
-                $Value = Switch($Datapoint.MetricType){
-                    "Rate" {
-                        Get-Random -Minimum 0 -Maximum 125000
-                    }
-                    "Percentage" {
-                        Get-Random -Minimum 0 -Maximum 100
-                    }
-                    "IO-Latency" {
-                        Get-Random -Minimum 0 -Maximum 125000
-                    }
-                    "SpaceUsage" {
-                        Get-Random -Minimum 0 -Maximum 322122547200
-                    }
-                    "Status" {
-                        If($Datapoint.MinValue -and $Datapoint.MaxValue){
-                            Get-Random -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
-                        }
-                        Else{
-                            Get-Random -Minimum 0 -Maximum 5
-                        }
-                    }
-                    Default {
-                        Get-Random -Minimum 0 -Maximum 1000
-                    }
-                }
-            }
-        }
-        Write-Debug "Generated value of ($Value) for datapoint ($($Instance.Name)-$($Datapoint.Name)) using metric type ($($Datapoint.MetricType)) and model simulation type ($SimulationType)."
-    }
-    Return $Value
 }

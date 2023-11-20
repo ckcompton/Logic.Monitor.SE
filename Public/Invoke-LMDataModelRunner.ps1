@@ -33,7 +33,7 @@ Number of models to process in parallel, defaults to 5. Running too many concurr
 Switch to enable the procesing of scripts included in the module directory under the script folder.
 
 .EXAMPLE
-Invoke-LMDataModelRunner BearerToken XXXXXXX -AccountName portal_name -ModelPath C:\LogicMonitor\<ModelDir> -LogSourceName "DL-PMv1" -LogFileName Runner.txt -LogResult -LogResourceId @{"system.deviceId"="123"}
+Invoke-LMDataModelRunner -BearerToken XXXXXXX -AccountName portal_name -ModelPath C:\LogicMonitor\<ModelDir> -LogSourceName "DL-PMv1" -LogFileName Runner.txt -LogResult -LogResourceId @{"system.deviceId"="123"}
 
 .INPUTS
 None. You cannot pipe objects to this command.
@@ -73,6 +73,8 @@ Function Invoke-LMDataModelRunner {
 
         [Int]$ConcurrencyLimit = 5,
 
+        [Switch]$MultiThreadDatasourceSubmission,
+
         [Switch]$RunPreFlightScripts
     )
 
@@ -109,14 +111,20 @@ Function Invoke-LMDataModelRunner {
             Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor/Dev.Logic.Monitor.psd1 -Force -ErrorAction SilentlyContinue
             Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor.SE/Dev.Logic.Monitor.SE.psd1 -Force -ErrorAction SilentlyContinue
 
-            #Connect to portal
-            Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName
-
             #Start last run log
             $RunnerTranscriptPath = "$using:ModelPath\$($_.DisplayName)-$using:LogFileName"
             If($using:LogResult){Start-Transcript -Path $RunnerTranscriptPath -UseMinimalHeader -ErrorAction SilentlyContinue}
             
-            $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_}
+            If($MultiThreadDatasourceSubmission){
+                #Call Submit-LMDataModelConcurrent to run DS processing in parallel
+                $ModelResult = Measure-Command {Submit-LMDataModelConcurrent -ModelObject $_ -BearerToken $using:BearerToken -AccountName $using:AccountName -ConcurrencyLimit $ConcurrencyLimit}
+            }
+            Else{
+                #Connect to portal
+                Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName
+
+                $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_}
+            }
             $ModelTime = [Math]::Round(($ModelResult).TotalMinutes,2)
 
             #End last run log

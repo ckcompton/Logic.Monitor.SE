@@ -15,7 +15,8 @@ Invokes Submit-LMDataModel for an array of models
 ```
 Invoke-LMDataModelRunner -BearerToken <String> -AccountName <String> -ModelPath <String>
  [-LogSourceName <String>] [-LogFileName <String>] [-LogResult] [-LogResourceId <Hashtable>]
- [-ConcurrencyLimit <Int32>] [-RunPreFlightScripts] [<CommonParameters>]
+ [-LogAdditionalMetadata <Hashtable>] [-ConcurrencyLimit <Int32>] [-MultiThreadDatasourceSubmission]
+ [-RunPreFlightScripts] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -137,6 +138,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -LogAdditionalMetadata
+{{ Fill LogAdditionalMetadata Description }}
+
+```yaml
+Type: Hashtable
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ConcurrencyLimit
 Number of models to process in parallel, defaults to 5.
 Running too many concurrently can result in 429 errors.
@@ -149,6 +165,21 @@ Aliases:
 Required: False
 Position: Named
 Default value: 5
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -MultiThreadDatasourceSubmission
+{{ Fill MultiThreadDatasourceSubmission Description }}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

@@ -110,8 +110,13 @@ Function Build-LMDataModel {
     If($IncludeModelDeviceData){$SimulationType = "replay_model"}
 
     $DataSourceModels = [System.Collections.Generic.List[object]]::New()
+    $i = 0
+    $StepsCount = 5
+    $DSCount = ($DatasourceNames | Measure-Object).Count
+    
     #Loop through each provided DSName to generate models
     Foreach($DatasourceName in $DatasourceNames){
+        Write-Progress -Activity "Generating Model for datasource: $DatasourceName" -Status "$([Math]::Floor($($i/$DSCount*100)))% Completed" -PercentComplete $($i/$DSCount*100) -Id 0
         #Grab specified source DS for DatasourceName so we can model it for PushMetrics
         Write-Debug "Using provided datasource name ($DatasourceName) as model candidate."
         $DatasourceInfo = Get-LMDatasource -Name $DatasourceName
@@ -123,8 +128,11 @@ Function Build-LMDataModel {
             $Datapoints = $Datasource.datapoints
             $DatasourceGroupName = $Datasource.group
 
-            #Estimate datapoint type for model generation
             $DatapointDefenition = [System.Collections.Generic.List[object]]::New()
+            $DPCount = ($Datapoints | Measure-Object).Count
+            
+            #Estimate datapoint type for model generation
+            Write-Progress -Activity "Processing $DPCount datapoint(s) for datasource: $DatasourceName" -ParentId 0 -Id 1 -Status "$(1/$StepsCount*100)% Completed" -PercentComplete $(1/$StepsCount*100)
             Foreach ($Datapoint in $Datapoints){
                 $MetricType = Resolve-MetricType -Datapoint $Datapoint.name
                 If($Datapoint.postProcessorMethod -eq "expression"){
@@ -155,15 +163,18 @@ Function Build-LMDataModel {
 
             #Get Graph settings we will need to model our PushMetric DS after
             If($IncludeModuleGraphs){
+                Write-Progress -Activity "Exporting existing datasource overview graph defenition(s) for datasource: $DatasourceName" -ParentId 0 -Id 1 -Status "$(2/$StepsCount*100)% Completed" -PercentComplete $(2/$StepsCount*100)
                 Write-Debug "Exporting existing datasource overview graph defenition(s) for model export."
                 $DatasourceGraphModel  = Get-LMDatasourceGraph -DatasourceName $Datasource.Name | Select-Object -ExcludeProperty id
 
+                Write-Progress -Activity "Exporting existing datasource instance graph defenition(s) for datasource: $DatasourceName" -ParentId 0 -Id 1 -Status "$(3/$StepsCount*100)% Completed" -PercentComplete $(3/$StepsCount*100)
                 Write-Debug "Exporting existing datasource instance graph defenition(s) for model export."
                 $DatasourceOverviewGraphModel = Get-LMDatasourceOverviewGraph -DatasourceName $Datasource.Name | Select-Object -ExcludeProperty id
             }
 
             #Generate Instances if not specified
             $Instances = [System.Collections.Generic.List[object]]::New()
+            Write-Progress -Activity "Generating instances for datasource: $DatasourceName" -ParentId 0 -Id 1 -Status "$(4/$StepsCount*100)% Completed" -PercentComplete $(4/$StepsCount*100)
             If($GenerateInstances -and [Boolean]$Datasource.hasMultiInstances){
                 Write-Debug "Generating $InstanceCount instance(s) for data model export."
                 $Instances.AddRange($(Build-Instance -InstanceCount $InstanceCount -Datasource $DatasourceDefenition))
@@ -183,6 +194,7 @@ Function Build-LMDataModel {
                 }
             }
 
+            Write-Progress -Activity "Adding datasource: $DatasourceName to model export" -ParentId 0 -Id 1 -Status "$(5/$StepsCount*100)% Completed" -PercentComplete $(5/$StepsCount*100)
             #Combine our model info together for export
             $DataSourceModel = [PSCustomObject]@{
                 DatasourceName = $DatasourceName
@@ -196,25 +208,23 @@ Function Build-LMDataModel {
         }
         Write-Debug "Exporting data model ($DatasourceName)."
         $DataSourceModels.Add($DataSourceModel)
+        $i++
     }
 
     $PropertiesHash = @{}
     If($IncludeModelDeviceProperties){
-        $Properties = $($ModelDevice.autoProperties + $ModelDevice.customProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.authToken||.privToken|.token|.cert|.secret|.user|system.|.id"}
+        $Properties = $($ModelDevice.autoProperties + $ModelDevice.customProperties) | Where-Object {$_.name -notmatch "auto.snmp.|auto.network.|snmp.|auto.lm.|.pass|.community|.key|.authToken|.privToken|.token|.cert|.secret|.user|system.|.id" -and $null -ne $_.value -and $_.value -ne ""}
         
         Foreach ($Prop in $Properties){
             $Prop.name = "autodiscovery." + $Prop.name.replace("auto.","")
-            $PropertiesHash.Add($Prop.name,$Prop.value)
+            $PropertiesHash.Add($Prop.name,$Prop.value.trim())
         }
-        
-        #Remove null props if they exist
-        @($PropertiesHash.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($PropertiesHash[$_])) { $PropertiesHash.Remove($_) } }
     }
 
     $DeviceModel = [PSCustomObject]@{
         HostName = $DeviceHostName
         DisplayName = $DeviceDisplayName
-        Properties = $PropertiesHash
+        Properties = [PSCustomObject]$PropertiesHash
         SimulationType = $SimulationType
         Datasources = $DataSourceModels
     }
@@ -260,7 +270,7 @@ Function Build-Instance {
     If($SingleInstance){
         Write-Debug "Single instance datasource detected, skipping instance generation usings datasource name as instance"
         $Instances.Add([PSCustomObject]@{
-            Name            = ($Datasource.name -replace '[#\\/();=]', '_')
+            Name            = ($Datasource.name -replace '[#\\/();=&]', '_')
             DisplayName     = ($Datasource.displayName -replace '[#\\/;=]', '_')
             Description     = ""
             Properties        = @{}
@@ -291,22 +301,19 @@ Function Build-Instance {
             
             If($IncludeModelDeviceProperties){
                 $PropertiesHash = @{}
-                $Properties = $($Instance.customProperties + $Instance.autoProperties) | Where-Object {$_.name -notmatch ".pass|.community|.key|.authToken||.privToken|.token|.cert|.secret|.user|system.|.id"}
+                $Properties = $($Instance.customProperties + $Instance.autoProperties) | Where-Object {$_.name -notmatch "auto.snmp.|auto.network.|snmp.|auto.lm.|.pass|.community|.key|.authToken|.privToken|.token|.cert|.secret|.user|system.|.id" -and $null -ne $_.value -and $_.value -ne ""}
 
                 Foreach ($Prop in $Properties){
                     $Prop.name = "autodiscovery." + $Prop.name.replace("auto.","")
-                    $PropertiesHash.Add($Prop.name,$Prop.value)
+                    $PropertiesHash.Add($Prop.name,$Prop.value.trim())
                 }
-
-                #Remove null props if they exist
-                @($PropertiesHash.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($PropertiesHash[$_])) { $PropertiesHash.Remove($_) } }
             }
 
             $Instances.Add([PSCustomObject]@{
-                Name            = (($Instance.name -replace '[#\\/;=]', '_') -replace '[\[\]{}]','')
-                DisplayName     = If($Instance.displayName){(($Instance.displayName -replace '[#\\;=]', '_') -replace '[\[\]{}]','')}Else{(($Datasource.displayName -replace '[#\\;=]', '_'))}
+                Name            = (($Instance.name -replace '[#\\/;=&]', '_') -replace '[\[\]{}()<>]','')
+                DisplayName     = If($Instance.displayName){(($Instance.displayName -replace '[#\\;=]', '_') -replace '[\[\](){}<>]','')}Else{(($Datasource.displayName -replace '[#\\;=]', '_') -replace '[\[\]{}()<>]','')}
                 Description     = $Instance.description
-                Properties       = $PropertiesHash
+                Properties       = [PSCustomObject]$PropertiesHash
                 Type            = "DeviceModeled"
                 Data            = $Data
             })

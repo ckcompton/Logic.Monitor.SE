@@ -507,9 +507,58 @@
     <command:syntax>
       <command:syntaxItem>
         <maml:name>ConvertTo-LMDynamicGroupFromCategories</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+          <maml:name>ExcludeCategoryList</maml:name>
+          <maml:description>
+            <maml:para>{{ Fill ExcludeCategoryList Description }}</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>@("TopoSwitch","snmpTCPUDP","LogicMonitorPortal","snmp","snmpUptime","snmpHR","Netsnmp","email rtt","email transit","collector","NoPing","NoHTTPS")</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+          <maml:name>DefaultGroupName</maml:name>
+          <maml:description>
+            <maml:para>{{ Fill DefaultGroupName Description }}</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>Devices by Category</dev:defaultValue>
+        </command:parameter>
       </command:syntaxItem>
     </command:syntax>
-    <command:parameters />
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+        <maml:name>ExcludeCategoryList</maml:name>
+        <maml:description>
+          <maml:para>{{ Fill ExcludeCategoryList Description }}</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>@("TopoSwitch","snmpTCPUDP","LogicMonitorPortal","snmp","snmpUptime","snmpHR","Netsnmp","email rtt","email transit","collector","NoPing","NoHTTPS")</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+        <maml:name>DefaultGroupName</maml:name>
+        <maml:description>
+          <maml:para>{{ Fill DefaultGroupName Description }}</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>Devices by Category</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
     <command:inputTypes>
       <command:inputType>
         <dev:type>
@@ -1952,6 +2001,18 @@
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>LogAdditionalMetadata</maml:name>
+          <maml:description>
+            <maml:para>{{ Fill LogAdditionalMetadata Description }}</maml:para>
+          </maml:description>
+          <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+          <dev:type>
+            <maml:name>Hashtable</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>ConcurrencyLimit</maml:name>
           <maml:description>
             <maml:para>Number of models to process in parallel, defaults to 5. Running too many concurrently can result in 429 errors.</maml:para>
@@ -1962,6 +2023,17 @@
             <maml:uri />
           </dev:type>
           <dev:defaultValue>5</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>MultiThreadDatasourceSubmission</maml:name>
+          <maml:description>
+            <maml:para>{{ Fill MultiThreadDatasourceSubmission Description }}</maml:para>
+          </maml:description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
         </command:parameter>
         <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
           <maml:name>RunPreFlightScripts</maml:name>
@@ -2062,6 +2134,18 @@
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>LogAdditionalMetadata</maml:name>
+        <maml:description>
+          <maml:para>{{ Fill LogAdditionalMetadata Description }}</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
+        <dev:type>
+          <maml:name>Hashtable</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>ConcurrencyLimit</maml:name>
         <maml:description>
           <maml:para>Number of models to process in parallel, defaults to 5. Running too many concurrently can result in 429 errors.</maml:para>
@@ -2072,6 +2156,18 @@
           <maml:uri />
         </dev:type>
         <dev:defaultValue>5</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>MultiThreadDatasourceSubmission</maml:name>
+        <maml:description>
+          <maml:para>{{ Fill MultiThreadDatasourceSubmission Description }}</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
       </command:parameter>
       <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
         <maml:name>RunPreFlightScripts</maml:name>
@@ -2721,7 +2817,7 @@
     <command:syntax>
       <command:syntaxItem>
         <maml:name>Submit-LMDataModel</maml:name>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
           <maml:name>ModelObject</maml:name>
           <maml:description>
             <maml:para>Existing model already converted from JSON or directly from output of Build-LMDataModel.</maml:para>
@@ -2733,57 +2829,7 @@
           </dev:type>
           <dev:defaultValue>None</dev:defaultValue>
         </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>DatasourceSuffix</maml:name>
-          <maml:description>
-            <maml:para>The suffix appended to all created PushMetrics DSes, defaults to _PMv1 if not set.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
-          <dev:type>
-            <maml:name>String</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>_PMv1</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>ForceGraphProvisioning</maml:name>
-          <maml:description>
-            <maml:para>Will force and attempt to provision datasource graphs regarless if they already exist or not</maml:para>
-          </maml:description>
-          <dev:type>
-            <maml:name>SwitchParameter</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>False</dev:defaultValue>
-        </command:parameter>
-      </command:syntaxItem>
-      <command:syntaxItem>
-        <maml:name>Submit-LMDataModel</maml:name>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>ModelObject</maml:name>
-          <maml:description>
-            <maml:para>Existing model already converted from JSON or directly from output of Build-LMDataModel.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
-          <dev:type>
-            <maml:name>Object</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-          <maml:name>ModelJson</maml:name>
-          <maml:description>
-            <maml:para>Existing model in JSON format that is originated from the output of Build-LMDataModel.</maml:para>
-          </maml:description>
-          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
-          <dev:type>
-            <maml:name>Object</maml:name>
-            <maml:uri />
-          </dev:type>
-          <dev:defaultValue>None</dev:defaultValue>
-        </command:parameter>
-        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
           <maml:name>DatasourceSuffix</maml:name>
           <maml:description>
             <maml:para>The suffix appended to all created PushMetrics DSes, defaults to _PMv1 if not set.</maml:para>
@@ -2809,7 +2855,7 @@
       </command:syntaxItem>
     </command:syntax>
     <command:parameters>
-      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="True (ByValue)" position="1" aliases="none">
         <maml:name>ModelObject</maml:name>
         <maml:description>
           <maml:para>Existing model already converted from JSON or directly from output of Build-LMDataModel.</maml:para>
@@ -2821,19 +2867,7 @@
         </dev:type>
         <dev:defaultValue>None</dev:defaultValue>
       </command:parameter>
-      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
-        <maml:name>ModelJson</maml:name>
-        <maml:description>
-          <maml:para>Existing model in JSON format that is originated from the output of Build-LMDataModel.</maml:para>
-        </maml:description>
-        <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
-        <dev:type>
-          <maml:name>Object</maml:name>
-          <maml:uri />
-        </dev:type>
-        <dev:defaultValue>None</dev:defaultValue>
-      </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
         <maml:name>DatasourceSuffix</maml:name>
         <maml:description>
           <maml:para>The suffix appended to all created PushMetrics DSes, defaults to _PMv1 if not set.</maml:para>
