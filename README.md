@@ -21,7 +21,6 @@ PowerShell modules with utilities used by Sales Engineering.
 
 **Submit-LMDataModel**: 
 - Remove parameter support for **-ModelJson** as its not needed since it already accepts the model object
-- Add progress indicator to show export progress
 - If no data is found for a data point that is part of a model reply, it will now default to generating random data based on estimated metric type. Previously the behavior was to jus default to a value of 0.
 
 ###### New Commands:
