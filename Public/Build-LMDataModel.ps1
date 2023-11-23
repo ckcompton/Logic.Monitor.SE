@@ -287,8 +287,14 @@ Function Build-Instance {
         Foreach($Instance in $InstanceList){
             $Data = [System.Collections.Generic.List[object]]::New()
             If($IncludeModelData){
-                Write-Debug "Extracting last 24 hours of model device data for instance ($($Instance.name))"
-                $InstanceData = Get-LMDeviceData -DeviceName $ModelDeviceHostName -DatasourceName $Datasource.name -InstanceName $Instance.name -StartDate (Get-Date).AddHours(-24) -EndDate (Get-Date)
+                If($Datasource.collectInterval -ge 43200 ){
+                    Write-Debug "Extracting last 3 months of model device data for instance ($($Instance.name)) due to large polling interval"
+                    $InstanceData = Get-LMDeviceData -DeviceName $ModelDeviceHostName -DatasourceName $Datasource.name -InstanceName $Instance.name -StartDate (Get-Date).AddDays(-90) -EndDate (Get-Date)
+                }
+                Else{
+                    Write-Debug "Extracting last 24 hours of model device data for instance ($($Instance.name))"
+                    $InstanceData = Get-LMDeviceData -DeviceName $ModelDeviceHostName -DatasourceName $Datasource.name -InstanceName $Instance.name -StartDate (Get-Date).AddHours(-24) -EndDate (Get-Date)
+                }
                 If($InstanceData){
                     $DataCount = ($InstanceData | Measure-Object).Count
                     Write-Debug "Added $DataCount time series metrics to data model for ($($Instance.name))"
