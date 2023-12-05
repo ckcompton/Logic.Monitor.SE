@@ -26,6 +26,9 @@ Function Initialize-LMPOVSetup {
         [Switch]$SetupPortalMetrics,
 
         [Parameter(ParameterSetName = 'Individual')]
+        [Switch]$SetupAlertAnalysis,
+
+        [Parameter(ParameterSetName = 'Individual')]
         [Switch]$SetupLMContainer,
 
         [Parameter(ParameterSetName = 'All')]
@@ -375,6 +378,83 @@ Function Initialize-LMPOVSetup {
                     Write-Host "[INFO]: LM Logs core logicmodule ($($LogsDatasource.displayname)) already exists in portal, skipping setup" -ForegroundColor Gray
                 }
             }
+
+            If($IncludeDefaults -or $SetupAlertAnalysis){
+                #Deploy AlertDuration dashboard
+                Write-Host "[INFO]: Setting up Alert Analysis Dashboard and LogicModules from repo."
+                $CheckPortalDevice = Get-LMDevice -Name $DeviceName
+                If($CheckPortalDevice){
+                    #Setup alert analysis package
+                        #Import default DSes
+                        $ModuleList = @(
+                            @{
+                                name = "LogicMonitor_Device_Alert_Statistics.xml"
+                                type = "datasource"
+                                repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
+                            },
+                            @{
+                                name = "LogicMonitor_Portal_Alert_Statistics_Cache.xml"
+                                type = "datasource"
+                                repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
+                            },
+                            @{
+                                name = "LogicMonitor_Portal_Alert_Statistics.xml"
+                                type = "datasource"
+                                repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
+                            }
+                        )
+
+                        Foreach($Module in $ModuleList){
+                            $ModuleName = $Module.name.Split(".")[0]
+                            $LogicModule = Get-LMDataSource -name $ModuleName
+                            If(!$LogicModule){
+                                Try{
+                                    $LogicModule = (Invoke-WebRequest -Uri "$GitubURI/$($Module.repo)/$($Module.name)").Content
+                                    Import-LMLogicModule -File $LogicModule -Type $Module.type -ErrorAction Stop
+                                    Write-Host "[INFO]: Successfully imported $ModuleName datasource"
+                                }
+                                Catch{
+                                    #Oops
+                                    Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
+                                }
+                            }
+                            Else{
+                                Write-Host "[INFO]: LogicModule $ModuleName already exists, skipping import" -ForegroundColor Gray
+                            }
+                        }
+
+                    $AlertAnalysisProps = @{
+                        "alert.analysis.period"="7"
+                        "alert.analysis.excludeUnACKedAlerts"="false"
+                        "alert.analysis.excludeSDTedAlerts"="false"
+                        "alert.analysis.datasourceList"="*"
+                        "alert.analysis.minimumTimeInSeconds"="0"
+                    }
+
+                    Set-LMDevice -Id $CheckPortalDevice.Id -Properties $AlertAnalysisProps | Out-Null
+                    $AlertDurationRootFolder = (Get-LMDashboardGroup -Name "LogicMonitor").Id
+                    If(!$AlertDurationRootFolder){$AlertDurationRootFolder = 1}
+
+                    Try{
+                        $AlertDurationDashboardFile = (Invoke-WebRequest -Uri "$GitubURI/LogicMonitor-Dashboards/main/Suites/Alert%20Duration/Alert_Duration_Overview.json").Content
+                        $AlertDurationDashboard = Get-LMDashboard -Name "Alert Duration Overview"
+                        If(!$AlertDurationDashboard){
+                            $ImportAlertDurationDashboard = Import-LMDashboard -File $AlertDurationDashboardFile -ParentGroupId $AlertDurationRootFolder
+                            Write-Host "[INFO]: Successfully imported Alert Duration Analysis Dashboard"
+                        }
+                        Else{
+                            Write-Host "[INFO]: Alert Duration Analysis Dashboard already exists, skipping import" -ForegroundColor Gray
+                        }
+                    }
+                    Catch{
+                        #Oops
+                        Write-Host "[ERROR]: Unable to import Alert Duration Analysis dashboard from source: $_" -ForegroundColor Red
+                    }
+                }
+                Else{
+                    Write-Host "[WARN]: Unable to import Alert Duration Analysis dashboard template: PortalMetrics device not found, please deploy before attempting to deploy" -ForegroundColor Yellow
+                }
+            }
             
              #Setup common default options/imports
              If($IncludeDefaults){
@@ -448,21 +528,6 @@ Function Initialize-LMPOVSetup {
                         name = "NoData_Tasks_Discovery_v2.json"
                         type = "propertyrules"
                         repo = "LogicMonitor-Dashboards/main/POV"
-                    },
-                    @{
-                        name = "LogicMonitor_Device_Alert_Statistics.xml"
-                        type = "datasource"
-                        repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
-                    },
-                    @{
-                        name = "LogicMonitor_Portal_Alert_Statistics_Cache.xml"
-                        type = "datasource"
-                        repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
-                    },
-                    @{
-                        name = "LogicMonitor_Portal_Alert_Statistics.xml"
-                        type = "datasource"
-                        repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
                     }
                 )
                 Foreach($Module in $ModuleList){
@@ -487,33 +552,6 @@ Function Initialize-LMPOVSetup {
                     Else{
                         Write-Host "[INFO]: LogicModule $ModuleName already exists, skipping import" -ForegroundColor Gray
                     }
-                }
-                
-                #Deploy AlertDuration dashboard
-                Write-Host "[INFO]: Importing Alert Duration Analysis Dashboard from repo."
-                $CheckPortalDevice = Get-LMDevice -Name $DeviceName
-                If($CheckPortalDevice){
-                    Set-LMDevice -Id $CheckPortalDevice.Id -Properties @{"alert.analysis.period"=7} | Out-Null
-                    $AlertDurationRootFolder = (Get-LMDashboardGroup -Name "LogicMonitor").Id
-                    If($AlertDurationRootFolder){
-                        Try{
-                            $AlertDurationDashboardFile = (Invoke-WebRequest -Uri "$GitubURI/LogicMonitor-Dashboards/main/Suites/Alert%20Duration/Alert_Duration_Overview.json").Content
-                            $AlertDurationDashboard = Get-LMDashboard -Name "Alert Duration Overview"
-                            If(!$AlertDurationDashboard){
-                                $ImportAlertDurationDashboard = Import-LMDashboard -File $AlertDurationDashboardFile -ParentGroupId $AlertDurationRootFolder
-                            }
-                            Else{
-                                Write-Host "[INFO]: Alert Duration Analysis Dashboard already exists, skipping import" -ForegroundColor Gray
-                            }
-                        }
-                        Catch{
-                            #Oops
-                            Write-Host "[ERROR]: Unable to import Alert Duration Analysis dashboard from source: $_" -ForegroundColor Red
-                        }
-                    }
-                }
-                Else{
-                    Write-Host "[WARN]: Unable to import Alert Duration Analysis dashboard template: PortalMetrics device not found, please deploy before attempting to deploy" -ForegroundColor Yellow
                 }
 
                 #Deploy Dynamic Dashboards
@@ -555,16 +593,16 @@ Function Initialize-LMPOVSetup {
                 $DashboardAPIUser = Get-LMUser -Name $DashboardAPIUserName
                 If(!$DashboardAPIRole){
                     $DashboardAPIRole = New-LMRole -Name $DashboardAPIRoleName -ResourcePermission view -DashboardsPermission manage -Description "Auto provisioned for use with dynamic dashboards"
-                    Write-Host "Successfully generated required API role ($DashboardAPIRoleName) for dynamic dashboards"
+                    Write-Host "[INFO]: Successfully generated required API role ($DashboardAPIRoleName) for dynamic dashboards"
                 }
                 If(!$DashboardAPIUser){
                     $DashboardAPIUser = New-LMAPIUser -Username "$DashboardAPIUserName" -note "Auto provisioned for use with dynamic dashboards" -RoleNames @($DashboardAPIRoleName)
-                    Write-Host "Successfully generated required API user ($DashboardAPIUserName) for dynamic dashboards"
+                    Write-Host "[INFO]: Successfully generated required API user ($DashboardAPIUserName) for dynamic dashboards"
                 }
                 If($DashboardAPIRole -and $DashboardAPIUser){
                     $APIToken = New-LMAPIToken -Username $DashboardAPIUserName -Note "Auto provisioned for use with dynamic dashboards"
                     If($APIToken){
-                        Write-Host "Successfully generated required API token for dynamic dashboards for user: $DashboardAPIUserName"
+                        Write-Host "[INFO]: Successfully generated required API token for dynamic dashboards for user: $DashboardAPIUserName"
                     }
                 }
                 Else{
