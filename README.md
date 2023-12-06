@@ -3,9 +3,9 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## 1.4.2
+## 1.4.3
 ###### Updated Commands:
 **Initalize-LMPOVsetup**: 
-- Alert Analysis Dashboard deployment can be deployed with a seperate Switch -SetupAlertAnalysis in addition the the -IncludeDefaults switch.
+- Alert Analysis Dashboard setup now includes support for device groups, if deploying this in POV you should always deploy the latest version.
 
 [Previous Release Notes](RELEASENOTES.md)

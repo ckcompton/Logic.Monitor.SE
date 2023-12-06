@@ -393,6 +393,11 @@ Function Initialize-LMPOVSetup {
                                 repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
                             },
                             @{
+                                name = "LogicMonitor_DeviceGroup_Alert_Statistics.xml"
+                                type = "datasource"
+                                repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
+                            },
+                            @{
                                 name = "LogicMonitor_Portal_Alert_Statistics_Cache.xml"
                                 type = "datasource"
                                 repo = "LogicMonitor-Dashboards/main/Suites/Alert%20Duration"
@@ -436,23 +441,23 @@ Function Initialize-LMPOVSetup {
                     If(!$AlertDurationRootFolder){$AlertDurationRootFolder = 1}
 
                     Try{
-                        $AlertDurationDashboardFile = (Invoke-WebRequest -Uri "$GitubURI/LogicMonitor-Dashboards/main/Suites/Alert%20Duration/Alert_Duration_Overview.json").Content
-                        $AlertDurationDashboard = Get-LMDashboard -Name "Alert Duration Overview"
+                        $AlertDurationDashboardFile = (Invoke-WebRequest -Uri "$GitubURI/LogicMonitor-Dashboards/main/Suites/Alert%20Duration/Alert_Analysis_Overview.json").Content
+                        $AlertDurationDashboard = Get-LMDashboard -Name "Alert Analysis Overview"
                         If(!$AlertDurationDashboard){
                             $ImportAlertDurationDashboard = Import-LMDashboard -File $AlertDurationDashboardFile -ParentGroupId $AlertDurationRootFolder
-                            Write-Host "[INFO]: Successfully imported Alert Duration Analysis Dashboard"
+                            Write-Host "[INFO]: Successfully imported Alert Analysis Dashboard"
                         }
                         Else{
-                            Write-Host "[INFO]: Alert Duration Analysis Dashboard already exists, skipping import" -ForegroundColor Gray
+                            Write-Host "[INFO]: Alert Analysis Dashboard already exists, skipping import" -ForegroundColor Gray
                         }
                     }
                     Catch{
                         #Oops
-                        Write-Host "[ERROR]: Unable to import Alert Duration Analysis dashboard from source: $_" -ForegroundColor Red
+                        Write-Host "[ERROR]: Unable to import Alert Analysis dashboard from source: $_" -ForegroundColor Red
                     }
                 }
                 Else{
-                    Write-Host "[WARN]: Unable to import Alert Duration Analysis dashboard template: PortalMetrics device not found, please deploy before attempting to deploy" -ForegroundColor Yellow
+                    Write-Host "[WARN]: Unable to import Alert Analysis dashboard template: PortalMetrics device not found, please deploy before attempting to deploy" -ForegroundColor Yellow
                 }
             }
             

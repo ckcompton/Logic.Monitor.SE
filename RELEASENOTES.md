@@ -1,3 +1,8 @@
+## 1.4.2
+###### Updated Commands:
+**Initalize-LMPOVsetup**: 
+- Alert Analysis Dashboard deployment can be deployed with a seperate Switch -SetupAlertAnalysis in addition the the -IncludeDefaults switch.
+
 ## 1.4.1
 ###### Updated Commands:
 **Build-LMDataModel**: 
