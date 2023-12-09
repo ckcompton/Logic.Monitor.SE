@@ -15,10 +15,10 @@ Created groups will be placed in devices by type default resource group
 None. You cannot pipe objects to this command.
 
 .LINK
-Module repo: https://github.com/stevevillardi/Logic.Monitor
+Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
 
 .LINK
-PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor
+PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
 #>
 Function ConvertTo-LMDynamicGroupFromCategories {
     Param(

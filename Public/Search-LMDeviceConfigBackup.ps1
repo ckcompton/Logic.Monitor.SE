@@ -6,12 +6,6 @@ Function Search-LMDeviceConfigBackup {
 
         [Parameter(Mandatory)]
         [Regex]$SearchPattern
-
-        # [Parameter()]
-        # [Int]$LinesBeforeMatch = 0,
-
-        # [Parameter()]
-        # [Int]$LinesAfterMatch = 0
     )
     Begin{}
     Process{
