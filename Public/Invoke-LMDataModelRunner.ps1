@@ -59,6 +59,8 @@ Function Invoke-LMDataModelRunner {
         [Parameter(ParameterSetName = 'LogResult')]
         [String]$LogSourceName = "PMv1",
 
+        [String]$DatasourceSuffix = "_PMv1",
+
         [Parameter(ParameterSetName = 'LogResult')]
         [String]$LogFileName = "RunnerLog.txt",
 
@@ -123,7 +125,7 @@ Function Invoke-LMDataModelRunner {
                 #Connect to portal
                 Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName
 
-                $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_}
+                $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_ -DatasourceSuffix $using:DatasourceSuffix}
             }
             $ModelTime = [Math]::Round(($ModelResult).TotalMinutes,2)
 
