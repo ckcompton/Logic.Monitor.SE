@@ -119,7 +119,7 @@ Function Invoke-LMDataModelRunner {
             
             If($MultiThreadDatasourceSubmission){
                 #Call Submit-LMDataModelConcurrent to run DS processing in parallel
-                $ModelResult = Measure-Command {Submit-LMDataModelConcurrent -ModelObject $_ -BearerToken $using:BearerToken -AccountName $using:AccountName -ConcurrencyLimit $ConcurrencyLimit}
+                $ModelResult = Measure-Command {Submit-LMDataModelConcurrent -ModelObject $_ -BearerToken $using:BearerToken -AccountName $using:AccountName -DatasourceSuffix $using:DatasourceSuffix -ConcurrencyLimit $using:ConcurrencyLimit}
             }
             Else{
                 #Connect to portal

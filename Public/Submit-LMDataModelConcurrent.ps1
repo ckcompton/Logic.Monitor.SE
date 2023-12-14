@@ -78,7 +78,7 @@ Function Submit-LMDataModelConcurrent{
         $ModelCount = ($ModelObject.Datasources | Measure-Object).Count
 
         Write-Host "=========================================================================" -ForegroundColor White
-        Write-Host "|                  BEGIN PROCESSING ($($ModelObject.DisplayName))                  |" -ForegroundColor White
+        Write-Host "|        BEGIN MULTI-THREAD($ConcurrencyLimit) PROCESSING ($($ModelObject.DisplayName))        |" -ForegroundColor White
         Write-Host "=========================================================================" -ForegroundColor White
         Write-Host "Model contains $ModelCount datasource(s) for ingest, beinging processing."
         $ModelObject.Datasources | ForEach-Object -Parallel {
