@@ -117,13 +117,13 @@ Function Invoke-LMDataModelRunner {
             $RunnerTranscriptPath = "$using:ModelPath\$($_.DisplayName)-$using:LogFileName"
             If($using:LogResult){Start-Transcript -Path $RunnerTranscriptPath -UseMinimalHeader -ErrorAction SilentlyContinue}
             
-            If($MultiThreadDatasourceSubmission){
+            If($using:MultiThreadDatasourceSubmission){
                 #Call Submit-LMDataModelConcurrent to run DS processing in parallel
                 $ModelResult = Measure-Command {Submit-LMDataModelConcurrent -ModelObject $_ -BearerToken $using:BearerToken -AccountName $using:AccountName -DatasourceSuffix $using:DatasourceSuffix -ConcurrencyLimit $using:ConcurrencyLimit}
             }
             Else{
                 #Connect to portal
-                Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName
+                Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging
 
                 $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_ -DatasourceSuffix $using:DatasourceSuffix}
             }
@@ -136,8 +136,11 @@ Function Invoke-LMDataModelRunner {
 
             #Send Log Message with Result
             If($using:LogResult){
+                If($using:MultiThreadDatasourceSubmission){
+                    Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging
+                }
                 $DSList = $_.Datasources.DatasourceName -join ","
-                Send-LMLogMessage -Message $LastRunLog -resourceMapping $using:LogResourceId -Metadata $($LogAdditionalMetadata + @{"modelSimulationType"=$_.SimulationType;"modelDatasourceList"=$DSList;"modelRuntimeInMin"=$ModelTime;"modelLogSource"=$using:LogSourceName;"modelDeviceDisplayName"=$_.DisplayName})
+                Send-LMLogMessage -Message $LastRunLog -resourceMapping $using:LogResourceId -Metadata $($using:LogAdditionalMetadata + @{"modelSimulationType"=$_.SimulationType;"modelDatasourceList"=$DSList;"modelRuntimeInMin"=$ModelTime;"modelLogSource"=$using:LogSourceName;"modelDeviceDisplayName"=$_.DisplayName})
             }
 
             #Disconnect from portal

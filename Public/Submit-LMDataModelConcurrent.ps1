@@ -66,13 +66,7 @@ Function Submit-LMDataModelConcurrent{
         [Parameter(Mandatory)]
         [String]$AccountName
     )
-    Begin{
-        #Check if we are logged in and have valid api creds
-        If ($(Get-LMAccountStatus).Type -ne "Bearer") {
-            Write-Error "Push Metrics API only supports Bearer Token auth, please re-connect using a valid bearer token."
-        }
-        return
-    }
+    Begin{}
     Process{
         #Loop through models and submit for ingest
         $ModelCount = ($ModelObject.Datasources | Measure-Object).Count
@@ -187,14 +181,22 @@ Function Submit-LMDataModelConcurrent{
             Import-Module /Users/stevenvillardi/Documents/GitHub/Logic.Monitor.SE/Dev.Logic.Monitor.SE.psd1 -Force -ErrorAction SilentlyContinue
 
             #Connect to portal
-            Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName
+            Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging
+
+            $StatusMessage = $null
+
+            #Check if we are logged in and have valid api creds
+            If ($(Get-LMAccountStatus).Type -ne "Bearer") {
+                Write-Error "Push Metrics API only supports Bearer Token auth, please re-connect using a valid bearer token."
+                return
+            }
 
             $InstCount = ($_.Instances | Measure-Object).Count
             $DpCount = ($_.Datapoints | Measure-Object).Count
             $GCount = ($_.Graphs | Measure-Object).Count
             $OGCount = ($_.OverviewGraphs | Measure-Object).Count
-            Write-Host "Model loaded for datasource $($_.Defenition.Name) using device $($Using:ModelObject.DisplayName) and simulation type $($Using:ModelObject.SimulationType)."
-            Write-Host "Model contains $InstCount instance(s), each with $DpCount datapoint(s) and $($GCount + $OGCount) graph definition(s)."
+            $StatusMessage += "`n" + "Model loaded for datasource $($_.Defenition.Name) using device $($Using:ModelObject.DisplayName) and simulation type $($Using:ModelObject.SimulationType)."
+            $StatusMessage += "`n" +  "Model contains $InstCount instance(s), each with $DpCount datapoint(s) and $($GCount + $OGCount) graph definition(s)."
 
             #Loop through instances and generate instance and dp objects
             $InstanceArray = [System.Collections.Generic.List[object]]::New()
@@ -222,11 +224,11 @@ Function Submit-LMDataModelConcurrent{
             $DatasourceName = $_.Defenition.Name.Replace("-","") + $Using:DatasourceSuffix
             $ResourceIds = @{"system.hostname"=$DeviceHostName;"system.displayname"=$DeviceDisplayName}
 
-            Write-Host "Submitting PushMetric to ingest."
+            $StatusMessage += "`n" + "Submitting PushMetric to ingest."
             If($Using:ModelObject.Properties){$Using:ModelObject.Properties.PSObject.Properties | ForEach-Object -begin {$DevicePropertyHash=@{}} -process {$DevicePropertyHash."$($_.Name)" = $_.Value}}
             $Result = Send-LMPushMetric -Instances $InstanceArray -DatasourceGroup $DatasourceGroup -DatasourceDisplayName $DatasourceDisplayName -DatasourceName $DatasourceName -ResourceIds $ResourceIds -ResourceProperties $DevicePropertyHash -NewResourceHostName $DeviceHostName
 
-            Write-Host "PushMetric submitted with status: $($Result.message)  @($($Result.timestamp))"
+            $StatusMessage += "`n" + "PushMetric submitted with status: $($Result.message)  @($($Result.timestamp))"
             #Apply graph definitions if they do not exist yet
             Write-Debug "Checking if datasource $DatasourceName has been created yet"
             $PMDatasource = Get-LMDatasource -Name $DatasourceName
@@ -291,6 +293,7 @@ Function Submit-LMDataModelConcurrent{
             Else{
                 Write-Debug "$DatasourceName not found, will recheck on next submission."
             }
+            Write-Host $StatusMessage
         } -ThrottleLimit $ConcurrencyLimit
     }
     End{
