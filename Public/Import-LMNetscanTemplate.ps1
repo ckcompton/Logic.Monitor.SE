@@ -232,8 +232,8 @@ Function Import-LMNetscanTemplate{
 
         Switch($NetscanType){
             "vSphere"       {Import-LMvSphereNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
-            "Meraki"        {Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
-            "JuniperMist"   {Import-LMMerakiNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "JuniperMist"   {Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "Meraki"        {Import-LMMerakiNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             default         {
                 Import-LMvSphereNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
                 Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
