@@ -1,3 +1,8 @@
+## 1.4.3-5
+###### Updated Commands:
+**Initalize-LMPOVsetup**: 
+- Alert Analysis Dashboard setup now includes support for device groups, if deploying this in POV you should always deploy the latest version.
+
 ## 1.4.2
 ###### Updated Commands:
 **Initalize-LMPOVsetup**: 

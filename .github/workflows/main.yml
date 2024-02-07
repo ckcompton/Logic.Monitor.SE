@@ -13,17 +13,113 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  publish-to-gallery:
+  publish_to_gallery:
     runs-on: ubuntu-latest
     environment: publish
+    outputs: 
+      githubReleaseMessage: ${{steps.psgallery_publish.outputs.githubReleaseMessage}}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build and publish
-      # API key generated in PSGallery
+        id: psgallery_publish
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
           BUILD_VERSION: ${{github.ref_name}}
         shell: pwsh
         run: |
           ./Build.ps1
-          Publish-Module -path ./ -NuGetApiKey $env:NUGET_API_KEY -SkipAutomaticTags -Verbose          
+          Publish-Module -path ./ -NuGetApiKey $env:NUGET_API_KEY -SkipAutomaticTags -Verbose
+          $GithubReleaseMessage = @'
+          ${{github.event.release.body}}
+          '@
+          $GithubReleaseMessage = $GithubReleaseMessage.Replace("`n","\n").Replace("`"","\`"").Replace("**","*").Replace("    -",">").Replace("- ","• ").Replace("#","").Replace("`r","")
+          "githubReleaseMessage=$GithubReleaseMessage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+  push_to_slack:
+    needs: publish_to_gallery
+    runs-on: ubuntu-latest
+    environment: publish
+    steps:
+      - name: Send custom JSON data to Slack workflow
+        uses: slackapi/slack-github-action@v1.25.0
+        id: slack-post
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":party-lm-bug: Logic.Monitor.SE PowerShell Module Release (${{github.event.release.tag_name}})  :party-lm-bug:"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "text": "*${{github.event.release.published_at}}*  | Logic.Monitor.SE Update Announcements",
+                      "type": "mrkdwn"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":powershell-core: Release Notes :powershell-core:",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{needs.publish_to_gallery.outputs.githubReleaseMessage}}"
+                  },
+                  "accessory": {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Full/Previous Release Notes"
+                    },
+                    "url": "https://github.com/stevevillardi/Logic.Monitor.SE/releases"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": ":rocket: How to get the latest version :rocket:",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "```Update-Module -Name Logic.Monitor.SE -Force```"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": ":pushpin: Do you have a feature request or bug report? <https://github.com/stevevillardi/Logic.Monitor.SE/issues|Submit a Github Issue>."
+                    }
+                  ]
+                }
+              ]
+            }
