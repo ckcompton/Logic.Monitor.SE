@@ -1,13 +1,12 @@
 Function Import-LMNetscanTemplate{
     Param(
         [Parameter(Mandatory)]
-        [ValidateSet("vSphere","Meraki","JuniperMist","All")]
+        [ValidateSet("vSphere","Meraki","JuniperMist","All","CiscoSDWAN","CiscoCatalystWireless")]
         $NetscanType,
 
         [Parameter(Mandatory)]
         $NetscanCollectorId,
 
-        [Parameter(Mandatory)]
         $NetscanGroupName = "@default"
     )
     Function Import-LMvSphereNetScan{
@@ -173,6 +172,42 @@ Function Import-LMNetscanTemplate{
             -GroovyScript $Script.Replace("©","")
     }
 
+    Function Import-LMCiscoSDWANNetScan{
+        Param(
+            $CollectorId = 1,
+            $Name = "Cisco SDWAN Enhanced NetScan Template",
+            $Group,
+            $Description = "Cisco SDWAN Template based on: https://www.logicmonitor.com/support/cisco-catalyst-sd-wan-monitoring"
+        )
+
+        $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
+        $Filters = [System.Collections.Generic.List[PSObject]]@()
+        
+        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/cisco-sdwan.groovy"
+        
+        #Default Meraki NetScan Creds/Props
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.user"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.pass"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.vmanagehost"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.port"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.folder"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.allowedsites"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.manager.name"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.statisticslookback"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.sites.csv"="<optional>"})
+
+        New-LMEnhancedNetScan `
+            -CollectorId $CollectorId `
+            -Name $Name `
+            -NetScanGroupName $Group `
+            -CustomCredentials $CustomCredentials `
+            -Description $Description `
+            -GroovyScript $Script.Replace("©","")
+    }
+
     Function Import-LMJuniperNetScan{
         Param(
             $CollectorId = 1,
@@ -221,6 +256,43 @@ Function Import-LMNetscanTemplate{
             -GroovyScript $Script.Replace("©","")
     }
 
+    Function Import-LMCiscoCatalystWirelessNetScan {
+        Param(
+            $CollectorId = 1,
+            $Name = "Cisco Catalyst Center Wireless Enhanced NetScan Template",
+            $Group,
+            $Description = "Cisco Catalyst Center Wireless Template based on: https://www.logicmonitor.com/support/cisco-catalyst-wireless-access-point-monitoring"
+        )
+
+        $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
+        $Filters = [System.Collections.Generic.List[PSObject]]@()
+        
+        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/cisco-catalyst-center.groovy"
+        
+        #Default Meraki NetScan Creds/Props
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.user"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.pass"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.host"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.folder"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.name"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.collector.sites.csv"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.service.url"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.sites"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.devicefamilies"="<optional>"})
+
+        New-LMEnhancedNetScan `
+            -CollectorId $CollectorId `
+            -Name $Name `
+            -NetScanGroupName $Group `
+            -CustomCredentials $CustomCredentials `
+            -Description $Description `
+            -GroovyScript $Script.Replace("©","")
+    }
+
     If ($(Get-LMAccountStatus).Valid) {
         
         If($NetscanGroupName){
@@ -234,10 +306,14 @@ Function Import-LMNetscanTemplate{
             "vSphere"       {Import-LMvSphereNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             "JuniperMist"   {Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             "Meraki"        {Import-LMMerakiNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "CiscoSDWAN"    {Import-LMCiscoSDWANNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "CiscoCatalystWireless" {Import-LMCiscoCatalystWirelessNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             default         {
                 Import-LMvSphereNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
                 Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
                 Import-LMMerakiNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
+                Import-LMCiscoSDWANNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
+                Import-LMCiscoCatalystWirelessNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
             }
         }
 
