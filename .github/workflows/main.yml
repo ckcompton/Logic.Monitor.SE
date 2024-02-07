@@ -90,7 +90,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Logic.Monitor.SE* Release Notes"
+                    "text": "*Logic.Monitor* Release Notes"
                   },
                   "accessory": {
                     "type": "button",
