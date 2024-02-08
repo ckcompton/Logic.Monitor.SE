@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
    <ViewDefinitions>
-            <!-- New View LogicMonitor.DedupeList-->
+      <!-- New View LogicMonitor.DedupeList-->
       <View>
          <Name>LogicMonitorDedupeList</Name>
          <ViewSelectedBy>
@@ -72,9 +72,7 @@
             </TableRowEntries>
          </TableControl>
       </View>
-   </ViewDefinitions>
-   <ViewDefinitions>
-            <!-- New View LogicMonitor.DeprecatedDashboardWidgets-->
+      <!-- New View LogicMonitor.DeprecatedDashboardWidgets-->
       <View>
          <Name>LogicMonitorDeprecatedDashboardWidgets</Name>
          <ViewSelectedBy>
