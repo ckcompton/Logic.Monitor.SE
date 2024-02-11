@@ -1,7 +1,7 @@
 Function Import-LMNetscanTemplate{
     Param(
         [Parameter(Mandatory)]
-        [ValidateSet("vSphere","Meraki","JuniperMist","All","CiscoSDWAN","CiscoCatalystWireless")]
+        [ValidateSet("vSphere","Meraki","JuniperMist","CiscoCatalystSDWAN","CiscoCatalystWireless","PaloAltoPrisma","ArubaEdgeConnect","All")]
         $NetscanType,
 
         [Parameter(Mandatory)]
@@ -172,7 +172,7 @@ Function Import-LMNetscanTemplate{
             -GroovyScript $Script.Replace("©","")
     }
 
-    Function Import-LMCiscoSDWANNetScan{
+    Function Import-LMCiscoCatalystSDWANNetScan{
         Param(
             $CollectorId = 1,
             $Name = "Cisco SDWAN Enhanced NetScan Template",
@@ -189,8 +189,8 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.user"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.pass"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.vmanagehost"="<changeme>"})
-        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="<changeme>"})
-        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
         $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.port"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.folder"="<optional>"})
@@ -256,6 +256,69 @@ Function Import-LMNetscanTemplate{
             -GroovyScript $Script.Replace("©","")
     }
 
+    Function Import-LMArubaEdgeConnectNetScan{
+        Param(
+            $CollectorId = 1,
+            $Name = "Aruba Edge Connect Enhanced NetScan Template",
+            $Group,
+            $Description = "Aruba Edge Connect Template based on: https://www.logicmonitor.com/support/aruba-edgeconnect-sd-wan"
+        )
+
+        $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
+        $Filters = [System.Collections.Generic.List[PSObject]]@()
+        
+        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/aruba-edge-connect.groovy"
+        
+        #Default Meraki NetScan Creds/Props
+        $CustomCredentials.Add([PSCustomObject]@{"aruba.orchestrator.api.key"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"aruba.orchestrator.host"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
+        $CustomCredentials.Add([PSCustomObject]@{"aruba.sdwan.org.folder"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+
+        New-LMEnhancedNetScan `
+            -CollectorId $CollectorId `
+            -Name $Name `
+            -NetScanGroupName $Group `
+            -CustomCredentials $CustomCredentials `
+            -Description $Description `
+            -GroovyScript $Script.Replace("©","")
+    }
+    Function Import-LMPaloAltoPrismaNetScan{
+        Param(
+            $CollectorId = 1,
+            $Name = "Palo Alto Prisma Enhanced NetScan Template",
+            $Group,
+            $Description = "Palo Alto Prisma Template based on: https://www.logicmonitor.com/support/palo-alto-prisma-sd-wan-monitoring"
+        )
+
+        $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
+        $Filters = [System.Collections.Generic.List[PSObject]]@()
+        
+        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/palo-alto-prisma.groovy"
+        
+        #Default Meraki NetScan Creds/Props
+        $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.id"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.key"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.tsg.id"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
+        $CustomCredentials.Add([PSCustomObject]@{"paloalto.prisma.sdwan.root.folder"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"paloalto.collector"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"prisma.sdwan.sites.csv"="<optional>"})
+
+        New-LMEnhancedNetScan `
+            -CollectorId $CollectorId `
+            -Name $Name `
+            -NetScanGroupName $Group `
+            -CustomCredentials $CustomCredentials `
+            -Description $Description `
+            -GroovyScript $Script.Replace("©","")
+    }
+
     Function Import-LMCiscoCatalystWirelessNetScan {
         Param(
             $CollectorId = 1,
@@ -306,14 +369,18 @@ Function Import-LMNetscanTemplate{
             "vSphere"       {Import-LMvSphereNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             "JuniperMist"   {Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             "Meraki"        {Import-LMMerakiNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
-            "CiscoSDWAN"    {Import-LMCiscoSDWANNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "CiscoCatalystSDWAN"    {Import-LMCiscoCatalystSDWANNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             "CiscoCatalystWireless" {Import-LMCiscoCatalystWirelessNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "PaloAltoPrisma" {Import-LMPaloAltoPrismaNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
+            "ArubaEdgeConnect" {Import-LMArubaEdgeConnectNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName}
             default         {
                 Import-LMvSphereNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
                 Import-LMJuniperNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
                 Import-LMMerakiNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
-                Import-LMCiscoSDWANNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
+                Import-LMCiscoCatalystSDWANNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
                 Import-LMCiscoCatalystWirelessNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
+                Import-LMPaloAltoPrismaNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
+                Import-LMArubaEdgeConnectNetScan -CollectorId $NetscanCollectorId -Group $NetscanGroupName
             }
         }
 
