@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+Rebuild orginal out of box dyanmic resource groups.
+
+.DESCRIPTION
+Rebuild orginal out of box dyanmic resource groups.
+
+.EXAMPLE
+Import-LMNetscanTemplate -NetscanType vSphere -NetscanCollectorId 8 -NetscanGroupName "VMware Template"
+
+.NOTES
+Groovy code will be pulled from the LM support site by default to ensure latest version is always used.
+
+.INPUTS
+None. Does not accept pipeline input.
+
+.LINK
+Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
+
+.LINK
+PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
+#>
 Function Import-LMNetscanTemplate{
     Param(
         [Parameter(Mandatory)]
@@ -9,6 +31,20 @@ Function Import-LMNetscanTemplate{
 
         $NetscanGroupName = "@default"
     )
+
+    Function Get-LMSupportSiteCode {
+        Param(
+            [Parameter(Mandatory)]
+            $Uri
+        )
+
+        $RegexMatchRule = "(?s:<pre><code>(.*?)<\/code><\/pre>)"
+        $HTMLResult = Invoke-RestMethod -Uri $Uri
+        $HTMLMatch = [Regex]::Matches($HTMLResult,$RegexMatchRule)
+        $GroovyCode = [System.Web.HttpUtility]::HtmlDecode($HTMLMatch.Groups[1].Value)
+
+        Return $GroovyCode
+    }
     Function Import-LMvSphereNetScan{
         Param(
             $CollectorId = 1,
@@ -19,8 +55,16 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
-        
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/vsphere.groovy"
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/vmware-vsphere-monitoring"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest VMware Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/vsphere.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest VMware Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
         #Default vCenter NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"vcenter.user"="logicmonitor@vsphere.local"})
@@ -107,8 +151,17 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/cisco-meraki-monitoring"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest Meraki Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/meraki.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest Meraki Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/meraki.groovy"
         
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.org"="<Org Id>"})
@@ -182,8 +235,17 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/cisco-catalyst-sd-wan-monitoring"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest Cisco SDWAN Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/cisco-sdwan.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest Cisco SDWAN Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/cisco-sdwan.groovy"
         
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.user"="<changeme>"})
@@ -218,8 +280,16 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
-        
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/juniper-mist.groovy"
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/juniper-mist-monitoring"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest Juniper Mist Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/juniper-mist.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest Juniper Mist Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"mmist.api.org"="<Org Id>"})
@@ -266,8 +336,16 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
-        
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/aruba-edge-connect.groovy"
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/aruba-edgeconnect-sd-wan"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest Aruba Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/aruba-edge-connect.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest Aruba Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"aruba.orchestrator.api.key"="<changeme>"})
@@ -295,8 +373,17 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/palo-alto-prisma-sd-wan-monitoring"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest Palo Alto Prisma Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/palo-alto-prisma.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest Palo Alto Prisma Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/palo-alto-prisma.groovy"
         
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.id"="<changeme>"})
@@ -329,8 +416,18 @@ Function Import-LMNetscanTemplate{
 
         $CustomCredentials = [System.Collections.Generic.List[PSObject]]@()
         $Filters = [System.Collections.Generic.List[PSObject]]@()
+
+        #Attempt to scrape from support site, fall back to github if not
+        $Script = Get-LMSupportSiteCode -Uri "https://www.logicmonitor.com/support/cisco-catalyst-wireless-access-point-monitoring"
+        If(!$Script){
+            Write-Host "[INFO]: Unable to scrape latest Cisco Catalyst Wireless AP Netscan groovy code from support site, falling back to cached version." -ForegroundColor Yellow
+            $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/cisco-catalyst-center.groovy"
+        }
+        Else{
+            Write-Host "[INFO]: Able to scrape latest Cisco Catalyst Wireless AP Netscan groovy code from support site, using as latest version." -ForegroundColor Green
+        }
         
-        $Script = Invoke-RestMethod "https://raw.githubusercontent.com/stevevillardi/LogicMonitor-Dashboards/main/NetScan%20Templates/cisco-catalyst-center.groovy"
+        
         
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.user"="<changeme>"})

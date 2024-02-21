@@ -72,25 +72,19 @@
             </TableRowEntries>
          </TableControl>
       </View>
-      <!-- New View LogicMonitor.DeprecatedDashboardWidgets-->
+      <!-- New View LogicMonitor.WidgetSearch-->
       <View>
-         <Name>LogicMonitorDeprecatedDashboardWidgets</Name>
+         <Name>LogicMonitorWidgetSearch</Name>
          <ViewSelectedBy>
-            <TypeName>LogicMonitor.DeprecatedDashboardWidgets</TypeName>
+            <TypeName>LogicMonitor.WidgetSearch</TypeName>
          </ViewSelectedBy>
          <TableControl>
             <TableHeaders>
                <TableColumnHeader>
-                  <Label>dashboardId</Label>
+                  <Label>dataPointId</Label>
                </TableColumnHeader>
                <TableColumnHeader>
-                  <Label>dashboardName</Label>
-               </TableColumnHeader>
-               <TableColumnHeader>
-                  <Label>widgetId</Label>
-               </TableColumnHeader>
-               <TableColumnHeader>
-                  <Label>widgetName</Label>
+                  <Label>dataPointName</Label>
                </TableColumnHeader>
                <TableColumnHeader>
                   <Label>dataSourceId</Label>
@@ -99,10 +93,16 @@
                   <Label>dataSourceFullName</Label>
                </TableColumnHeader>
                <TableColumnHeader>
-                  <Label>dataPointId</Label>
+                  <Label>widgetId</Label>
                </TableColumnHeader>
                <TableColumnHeader>
-                  <Label>dataPointName</Label>
+                  <Label>widgetName</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>dashboardId</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>dashboardName</Label>
                </TableColumnHeader>
                <TableColumnHeader>
                   <Label>dashboardPath</Label>
@@ -112,16 +112,10 @@
                <TableRowEntry>
                   <TableColumnItems>
                      <TableColumnItem>
-                        <PropertyName>dashboardId</PropertyName>
+                        <PropertyName>dataPointId</PropertyName>
                      </TableColumnItem>
                      <TableColumnItem>
-                        <PropertyName>dashboardName</PropertyName>
-                     </TableColumnItem>
-                     <TableColumnItem>
-                        <PropertyName>widgetId</PropertyName>
-                     </TableColumnItem>
-                     <TableColumnItem>
-                        <PropertyName>widgetName</PropertyName>
+                        <PropertyName>dataPointName</PropertyName>
                      </TableColumnItem>
                      <TableColumnItem>
                         <PropertyName>dataSourceId</PropertyName>
@@ -130,13 +124,78 @@
                         <PropertyName>dataSourceFullName</PropertyName>
                      </TableColumnItem>
                      <TableColumnItem>
-                        <PropertyName>dataPointId</PropertyName>
+                        <PropertyName>widgetId</PropertyName>
                      </TableColumnItem>
                      <TableColumnItem>
-                        <PropertyName>dataPointName</PropertyName>
+                        <PropertyName>widgetName</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>dashboardId</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>dashboardName</PropertyName>
                      </TableColumnItem>
                      <TableColumnItem>
                         <PropertyName>dashboardPath</PropertyName>
+                     </TableColumnItem>
+                  </TableColumnItems>
+               </TableRowEntry>
+            </TableRowEntries>
+         </TableControl>
+      </View>
+      <!-- New View LogicMonitor.ActivityResults-->
+      <View>
+         <Name>LogicMonitorActivityResults</Name>
+         <ViewSelectedBy>
+            <TypeName>LogicMonitor.ActivityResults</TypeName>
+         </ViewSelectedBy>
+         <TableControl>
+            <TableHeaders>
+               <TableColumnHeader>
+                  <Label>Portal</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>UserName</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>ActivityCount</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>NumberOfLogins</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>LatestLogin</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>ActivityPeriod</Label>
+               </TableColumnHeader>
+               <TableColumnHeader>
+                  <Label>Activities</Label>
+               </TableColumnHeader>
+            </TableHeaders>
+            <TableRowEntries>
+               <TableRowEntry>
+                  <TableColumnItems>
+                     <TableColumnItem>
+                        <PropertyName>Portal</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>UserName</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>ActivityCount</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>NumberOfLogins</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>LatestLogin</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>ActivityPeriod</PropertyName>
+                     </TableColumnItem>
+                     <TableColumnItem>
+                        <PropertyName>Activities</PropertyName>
                      </TableColumnItem>
                   </TableColumnItems>
                </TableRowEntry>

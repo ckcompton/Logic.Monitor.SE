@@ -1,5 +1,6 @@
 Function Get-LMSession {
     Param (
+        [Parameter(Mandatory)]
         [String]$AccountName
     )
 

@@ -1,13 +1,34 @@
+<#
+.SYNOPSIS
+Generate list of active users in a portal along with associated activities.
+
+.DESCRIPTION
+Generate list of active users in a portal along with associated activities.
+
+.EXAMPLE
+Get-LMPOVActivityReport -DaysOfActivity 30
+
+.NOTES
+Must be connected to the portal you want to pull activity reports from ahead of time.
+
+.INPUTS
+None. Does not accept pipeline input
+
+.LINK
+Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
+
+.LINK
+PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
+#>
 Function Get-LMPOVActivityReport{
     Param(
-        [String]$Portal ,
-
         [Int]$DaysOfActivity = 14
     )
     If($(Get-LMAccountStatus).Valid){
         $ActivityResult = [System.Collections.ArrayList]@()
+        $Portal = $($(Get-LMAccountStatus).Portal)
         
-        Write-Host "[INFO]: Collecting audit logs for $Portal."
+        Write-Host "[INFO]: Collecting audit logs for $Portal for the last $DaysOfActivity days."
         $AuditLogs = Get-LMAuditLogs -StartDate $((Get-Date).AddDays(-$DaysOfActivity)) -EndDate $(Get-Date)
         If($AuditLogs){
             Write-Host "[INFO]: Parsing through $(($AuditLogs | Measure-Object).Count) log entries."
@@ -40,7 +61,7 @@ Function Get-LMPOVActivityReport{
         }
         Write-Host "[INFO]: Audit log activity collected for $Portal.`n"
     
-        return $ActivityResult
+        Return (Add-ObjectTypeInfo -InputObject $ActivityResult -TypeName "LogicMonitor.ActivityResults" )
     }
     Else {
         Write-Error "Please ensure you are logged in before running any commands, use Connect-LMAccount to login and try again."
