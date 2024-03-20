@@ -226,7 +226,7 @@ Function New-LMSimulatedDataValue {
                     $MinValue = 0
                     $MaxValue = 100
 
-                    $Fuzz = Get-SecureRandom -Minimum -10 -Maximum 10
+                    $Fuzz = Get-SecureRandom -Minimum -2 -Maximum 2
                     $TimeSlicePercent = ($TimeSliceHour / 24 + $TimeSliceMin / (60 * 24))
 
                     If($TimeSlicePercent -le .50){
