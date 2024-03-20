@@ -84,7 +84,7 @@ Function Submit-LMDataModel{
                 Write-Debug "Processing datapoints for instance $($Instance.Name)."
                 $Datapoints = [System.Collections.Generic.List[object]]::New()
                 Foreach($Datapoint in $Model.Datapoints){
-                    $Value = Generate-LMData -Datapoint $Datapoint -Instance $Instance -SimulationType $ModelObject.SimulationType
+                    $Value = Generate-LMData -Datapoint $Datapoint -Instance $Instance -SimulationType $ModelObject.SimulationType -SeedValue $ModelObject.HostName
                     $Datapoints.Add([PSCustomObject]@{
                         Name = $Datapoint.Name
                         Description = $Datapoint.Description
@@ -182,12 +182,110 @@ Function Submit-LMDataModel{
     }
 }
 
+Function New-LMSimulatedDataValue {
+    [CmdletBinding()]
+    Param(
+        $Datapoint,
+        $SimulationType,
+        $SeedValue
+    )
+
+    #Generate unique seed
+    $HostSeedValue = [Math]::Abs($SeedValue.GetHashCode())
+    #Set Defaults
+    $TotalMin = 1440 #24 hours
+    $Interval = 10 #Assumes running on 10 minute intervals
+
+    [Int]$TimeSliceMin = Get-Date -Format %m
+    [Int]$TimeSliceHour = Get-Date -Format %H
+
+    $Value = Switch($SimulationType){
+        "replicaiton" {
+            #TODO
+        }
+        "8to5" {
+            #TODO
+        }
+        default {
+            Switch($Datapoint.MetricType){
+                "Rate" {
+                    $MinValue = 0
+                    $MaxValue = 125000
+
+                    $Fuzz = Get-SecureRandom -Minimum -10 -Maximum 10
+                    $TimeSlicePercent = ($TimeSliceHour / 24 + $TimeSliceMin / (60 * 24))
+
+                    If($TimeSlicePercent -le .50){
+                        [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $TimeSlicePercent)) + $Fuzz)
+                    }
+                    Else{
+                        [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $(1 - $TimeSlicePercent))) + $Fuzz)
+                    }
+                }
+                "Percentage" {
+                    $MinValue = 0
+                    $MaxValue = 100
+
+                    $Fuzz = Get-SecureRandom -Minimum -10 -Maximum 10
+                    $TimeSlicePercent = ($TimeSliceHour / 24 + $TimeSliceMin / (60 * 24))
+
+                    If($TimeSlicePercent -le .50){
+                        $ValuePercent = [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $TimeSlicePercent)) + $Fuzz)
+                    }
+                    Else{
+                        $ValuePercent = [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $(1 - $TimeSlicePercent))) + $Fuzz)
+                    }
+                    If($ValuePercent -gt 100){$ValuePercent = 100}
+
+                    $ValuePercent
+                }
+                "IO-Latency" {
+                    $MinValue = 0
+                    $MaxValue = 125000
+
+                    $Fuzz = Get-SecureRandom -Minimum -10 -Maximum 10
+                    $TimeSlicePercent = ($TimeSliceHour / 24 + $TimeSliceMin / (60 * 24))
+
+                    If($TimeSlicePercent -le .50){
+                        [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $TimeSlicePercent)) + $Fuzz)
+                    }
+                    Else{
+                       [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $(1 - $TimeSlicePercent))) + $Fuzz)
+                    }
+                }
+                "SpaceUsage" {
+                    $GrowthFactor = Get-SecureRandom -Minimum 1.0 -Maximum 1.25
+                    If(!$Datapoint.MinValue){$MinValue = 0}Else{$MinValue = $Datapoint.MinValue}
+                    If(!$Datapoint.MaxValue){$MaxValue = 3221225472}Else{$MinValue = $Datapoint.MaxValue}
+
+                    $TimeSlicePercent = ($TimeSliceHour / 24 + $TimeSliceMin / (60 * 24))
+
+                    [Math]::Abs([Math]::Floor(($(Get-Random -Minimum $MinValue -Maximum $MaxValue -SetSeed $HostSeedValue) * $TimeSlicePercent)) * $GrowthFactor)
+                }
+                "Status" {
+                    If($Datapoint.MinValue -and $Datapoint.MaxValue){
+                        Get-SecureRandom -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
+                    }
+                    Else{
+                        Get-SecureRandom -Minimum 0 -Maximum 5
+                    }
+                }
+                Default {
+                    Get-SecureRandom -Minimum 0 -Maximum 1000
+                }
+            }
+        }
+    }
+    Return $Value
+}
+
 Function Generate-LMData {
     [CmdletBinding()]
     Param(
         $Datapoint,
         $Instance,
-        $SimulationType
+        $SimulationType,
+        $SeedValue
     )
     #If we have instance data from our model, use that instead
     If($Instance.Data){
@@ -206,71 +304,13 @@ Function Generate-LMData {
             Write-Debug "Generated value of ($Value) for datapoint ($($Instance.Name)-$($Datapoint.Name)) using data provided with the model."
         }
         Else{
-            $Value = Switch($Datapoint.MetricType){
-                "Rate" {
-                    Get-Random -Minimum 0 -Maximum 125000
-                }
-                "Percentage" {
-                    Get-Random -Minimum 0 -Maximum 100
-                }
-                "IO-Latency" {
-                    Get-Random -Minimum 0 -Maximum 125000
-                }
-                "SpaceUsage" {
-                    Get-Random -Minimum 0 -Maximum 322122547200
-                }
-                "Status" {
-                    If($Datapoint.MinValue -and $Datapoint.MaxValue){
-                        Get-Random -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
-                    }
-                    Else{
-                        Get-Random -Minimum 0 -Maximum 5
-                    }
-                }
-                Default {
-                    Get-Random -Minimum 0 -Maximum 1000
-                }
-            }
+            $Value = New-LMSimulatedDataValue -Datapoint $Datapoint -SimulationType $SimulationType -SeedValue $SeedValue
             Write-Debug "No instance data found for datapoint ($($Instance.Name)-$($Datapoint.Name)) using generated value of $($Datapoint.MetricType):($Value) as fallback."
         }
 
     }
     Else{
-        Switch($SimulationType){
-            "replicaiton" {
-                #TODO
-            }
-            "8to5" {
-                #TODO
-            }
-            default {
-                $Value = Switch($Datapoint.MetricType){
-                    "Rate" {
-                        Get-Random -Minimum 0 -Maximum 125000
-                    }
-                    "Percentage" {
-                        Get-Random -Minimum 0 -Maximum 100
-                    }
-                    "IO-Latency" {
-                        Get-Random -Minimum 0 -Maximum 125000
-                    }
-                    "SpaceUsage" {
-                        Get-Random -Minimum 0 -Maximum 322122547200
-                    }
-                    "Status" {
-                        If($Datapoint.MinValue -and $Datapoint.MaxValue){
-                            Get-Random -Minimum $Datapoint.MinValue -Maximum $Datapoint.MaxValue
-                        }
-                        Else{
-                            Get-Random -Minimum 0 -Maximum 5
-                        }
-                    }
-                    Default {
-                        Get-Random -Minimum 0 -Maximum 1000
-                    }
-                }
-            }
-        }
+        $Value = New-LMSimulatedDataValue -Datapoint $Datapoint -SimulationType $SimulationType -SeedValue $SeedValue
         Write-Debug "Generated value of ($Value) for datapoint ($($Instance.Name)-$($Datapoint.Name)) using metric type ($($Datapoint.MetricType)) and model simulation type ($SimulationType)."
     }
     Return $Value

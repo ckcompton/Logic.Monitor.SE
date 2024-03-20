@@ -33,7 +33,7 @@
     Description        = 'PowerShell module to assist with Sale Engineering activities.'
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion  = '7.0'
+    PowerShellVersion  = '7.4'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''

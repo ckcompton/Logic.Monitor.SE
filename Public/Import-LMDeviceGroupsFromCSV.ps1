@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-Imports list of devices based on specified CSV file.
+Imports list of device groups based on specified CSV file.
 
 .DESCRIPTION
-Imports list of devices based on specified CSV file. This will also create any groups specified in the hostgroups field so they are not required to exist ahead of import. Hostgroup should be the intended full path to the device. You can generate a sample of the CSV file by specifying the -GenerateExampleCSV parameter.
+Imports list of device groups based on specified CSV file. You can generate a sample of the CSV file by specifying the -GenerateExampleCSV parameter.
 
 .EXAMPLE
 Import-LMDeviceGroupsFromCSV -FilePath ./ImportList.csv -PassThru
@@ -79,8 +79,8 @@ Function Import-LMDeviceGroupsFromCSV {
                 #Get property headers for adding to property hashtable
                 $PropertyHeaders = ($GroupList | Get-Member -MemberType NoteProperty).Name | Where-Object {$_ -notmatch "name|fullpath|description|appliesTo"}
                 
-                $i = 0
-                $GroupCount = ($GroupList | Measure-Object).Count - 1
+                $i = 1
+                $GroupCount = ($GroupList | Measure-Object).Count
 
                 #Loop through device list and add to portal
                 Foreach($DeviceGroup in $GroupList){
@@ -93,8 +93,8 @@ Function Import-LMDeviceGroupsFromCSV {
                         $GroupId = (Get-LMDeviceGroup | Where-Object {$_.fullpath -eq $($DeviceGroup.fullpath)}).Id
                         If(!$GroupId){
                             $GroupPaths = $DeviceGroup.fullpath.Split("/")
-                            $j = 0
-                            $GroupPathsCount = ($GroupPaths | Measure-Object).Count - 1
+                            $j = 1
+                            $GroupPathsCount = ($GroupPaths | Measure-Object).Count
                             Foreach($Path in $GroupPaths){
                                 Write-Progress -Activity "Processing Parent Group Creation: $($DeviceGroup.fullpath)" -Status "$([Math]::Floor($($j/$GroupPathsCount*100)))% Completed" -PercentComplete $($j/$GroupPathsCount*100) -ParentId 0 -Id 1
                                 $GroupId = New-LMDeviceGroupFromPath -Path $Path -PreviousGroupId $GroupId

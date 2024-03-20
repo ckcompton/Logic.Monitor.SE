@@ -53,6 +53,8 @@ Function Import-LMDevicesFromCSV {
                 $SampleCSV[6]="property value 2"
             } | Export-Csv "SampleLMDeviceImportCSV.csv"  -Force -NoTypeInformation
 
+            Write-Host "[INFO]: Saved sample CSV (SampleLMDeviceImportCSV.csv) to current directory."
+
             Return
         }
         If ($(Get-LMAccountStatus).Valid) {
@@ -62,8 +64,8 @@ Function Import-LMDevicesFromCSV {
                 #Get property headers for adding to property hashtable
                 $PropertyHeaders = ($DeviceList | Get-Member -MemberType NoteProperty).Name | Where-Object {$_ -notmatch "ip|displayname|hostgroup|collectorid|description"}
                 
-                $i = 0
-                $DeviceCount = ($DeviceList | Measure-Object).Count - 1
+                $i = 1
+                $DeviceCount = ($DeviceList | Measure-Object).Count
 
                 #Loop through device list and add to portal
                 Foreach($Device in $DeviceList){
@@ -76,8 +78,8 @@ Function Import-LMDevicesFromCSV {
                         $GroupId = (Get-LMDeviceGroup | Where-Object {$_.fullpath -eq $($Device.hostgroup)}).Id
                         If(!$GroupId){
                             $GroupPaths = $Device.hostgroup.Split("/")
-                            $j = 0
-                            $GroupPathsCount = ($GroupPaths | Measure-Object).Count - 1
+                            $j = 1
+                            $GroupPathsCount = ($GroupPaths | Measure-Object).Count
                             Foreach($Path in $GroupPaths){
                                 Write-Progress -Activity "Processing Group Creation: $($Device.hostgroup)" -Status "$([Math]::Floor($($j/$GroupPathsCount*100)))% Completed" -PercentComplete $($j/$GroupPathsCount*100) -ParentId 0 -Id 1
                                 $GroupId = New-LMDeviceGroupFromPath -Path $Path -PreviousGroupId $GroupId
