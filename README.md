@@ -8,7 +8,7 @@ PowerShell modules with utilities used by Sales Engineering.
 ## 1.6.1
 ###### Important Note:
 - **PowerShell Core Minimum Version**:
- - Starting with version 1.6.1, the minimum version of PowerShell required to use the Logic.Monitor.SE module has be bumped from 7.0 -> 7.4. Ensure you are on the latest version of PSCore before you attempt to upgrade to 1.6.1. This change was made to allow for usage of the newer capabilities avaiable in the LTS verison of PSCore. The Logic.Monitor module will remain at a required version of 5.1.
+  - Starting with version 1.6.1, the minimum version of PowerShell required to use the Logic.Monitor.SE module has be bumped from 7.0 -> 7.4. Ensure you are on the latest version of PSCore before you attempt to upgrade to 1.6.1. This change was made to allow for usage of the newer capabilities avaiable in the LTS verison of PSCore. The Logic.Monitor module will remain at a required version of 5.1.
 
 ###### New Cmdlets:
 - **Set-LMDataModel**: 
