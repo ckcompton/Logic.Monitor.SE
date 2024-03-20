@@ -52,7 +52,7 @@ Function Submit-LMDataModel{
     Begin{
         #Check if we are logged in and have valid api creds
         If ($(Get-LMAccountStatus).Type -ne "Bearer") {
-            Write-Error "Push Metrics API only supports Bearer Token auth, please re-connect using a valid bearer token."
+            Write-Error "Push Metrics API only officially only supports Bearer Token auth, please re-connect using a valid bearer token if you encounter errors with submission."
         }
         return
     }
