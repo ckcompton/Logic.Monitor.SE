@@ -72,7 +72,7 @@ Function Import-LMDevicesFromCSV {
                     Write-Progress -Activity "Processing Device Import: $($Device.displayname)" -Status "$([Math]::Floor($($i/$DeviceCount*100)))% Completed" -PercentComplete $($i/$DeviceCount*100) -Id 0
                     $Properties = @{}
                     Foreach($Property in $PropertyHeaders){
-                        $Properties.Add($Property,$Device."$Property")
+                        If($null -ne $Device."$Property"){$Properties.Add($Property,$Device."$Property")}
                     }
                     Try{
                         $GroupId = (Get-LMDeviceGroup | Where-Object {$_.fullpath -eq $($Device.hostgroup)}).Id
@@ -86,7 +86,10 @@ Function Import-LMDevicesFromCSV {
                                 $j++
                             }
                         }
-                        $Device = New-LMDevice -name $Device.ip -DisplayName $Device.displayname -Description $Device.description -PreferredCollectorId $Device.collectorid -HostGroupIds $GroupId -Properties $Properties -ErrorAction Stop
+
+                        If($Device.collectorid){$CollectorId = $Device.collectorid}
+
+                        $Device = New-LMDevice -name $Device.ip -DisplayName $Device.displayname -Description $Device.description -PreferredCollectorId $CollectorId -HostGroupIds $GroupId -Properties $Properties -ErrorAction Stop
                         $Results.Add($Device) | Out-Null
                         $i++
                     }
