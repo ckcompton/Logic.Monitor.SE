@@ -5,26 +5,17 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## 1.6.1
+## 1.6.2
 ###### Important Note:
 - **PowerShell Core Minimum Version**:
-  - Starting with version 1.6.1, the minimum version of PowerShell required to use the Logic.Monitor.SE module has be bumped from 7.0 -> 7.4. Ensure you are on the latest version of PSCore before you attempt to upgrade to 1.6.1. This change was made to allow for usage of the newer capabilities avaiable in the LTS verison of PSCore. The Logic.Monitor module will remain at a required version of 5.1.
+  - Starting with version 1.6.1 and above, the minimum version of PowerShell required to use the Logic.Monitor.SE module has be bumped from 7.0 -> 7.4. Ensure you are on the latest version of PSCore before you attempt to upgrade to 1.6.1. This change was made to allow for usage of the newer capabilities avaiable in the LTS verison of PSCore. The Logic.Monitor module will remain at a required version of 5.1.
 
 ###### New Cmdlets:
-- **Set-LMDataModel**: 
-  - Cmdlet allows modification of existing data models Currently limited to model name, displayname, properties and simulaiton type. This initial release will allow for some basic information editing but will be opened up to allow data and other instance information to be modified in a future release.
-
-```powershell
-Set-LMDataModel -ModelObject $ModelObject -Properties @{"new.prop"="value"}
-```
+- **Invoke-LMPushMetricKeepAlive**: 
+  - Cmdlet for use with Invoke-LMDataModelRunner in order to keep PushMetrics devices alive when ingesting PushMetric data at a rate greater than 5 minutes.
 
 ###### Updated Cmdlets:
-- **Submit-LMDataModel**: 
-  - Updated data generation for models without reference data. Currently supported metric types are: IO-Latency, SpaceUsage, Status, Percentage and Rate.
-  - Added SeedValue functionality to allow for bell curve generation of data models.
-
-- **Submit-LMDataModelConcurrent**: 
-  - Updated data generation for models without reference data. Currently supported metric types are: IO-Latency, SpaceUsage, Status, Percentage and Rate.
-  - Added SeedValue functionality to allow for bell curve generation of data models.
+- **Import-LMDevicesFromCSV**: 
+  - Fixed bug that would not allow a property to be set if it was not set for every device set for import.
 
 [Previous Release Notes](RELEASENOTES.md)
