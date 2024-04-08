@@ -16,13 +16,13 @@ Imports a Meraki Cloud portal into LM.
 ```
 Import-LMMerakiCloud -MerakiAPIToken <String> [-AllowedOrgIds <String[]>] [-AllowedNetworkIds <String[]>]
  [-MerakiRootFolderName <String>] [-MerakiFolderParentGroupId <Int32>] [-CollectorId <String>]
- [<CommonParameters>]
+ [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### List
 ```
 Import-LMMerakiCloud -MerakiAPIToken <String> [-ListOrgIds] [-ListSNMPInfo] [-ListNetworkIds]
- [<CommonParameters>]
+ [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -174,6 +174,21 @@ Aliases:
 Required: False
 Position: Named
 Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ProgressAction
+{{ Fill ProgressAction Description }}
+
+```yaml
+Type: ActionPreference
+Parameter Sets: (All)
+Aliases: proga
+
+Required: False
+Position: Named
+Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

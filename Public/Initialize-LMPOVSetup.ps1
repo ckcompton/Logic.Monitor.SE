@@ -1,4 +1,54 @@
 
+<#
+.SYNOPSIS
+    This function initializes the Logic Monitor (POV) setup for SEs by automating various tasks required during POV setup.
+
+.DESCRIPTION
+    The Initialize-LMPOVSetup function sets up various components of the Logic Monitor POV. 
+    It can set up the website, portal metrics, alert analysis, and LM container. 
+    The setup for each component can be controlled individually or all at once.
+
+.PARAMETER Website
+    The name of the website to be set up. This parameter is used in both 'All' and 'Individual' parameter sets.
+
+.PARAMETER WebsiteHttpType
+    The HTTP type of the website. Defaults to "https". This parameter is used in both 'All' and 'Individual' parameter sets.
+
+.PARAMETER PortalMetricsAPIUsername
+    The username for the Portal Metrics API. Defaults to "lm_portal_metrics". This parameter is used in both 'All' and 'Individual' parameter sets.
+
+.PARAMETER LogsAPIUsername
+    The username for the Logs API. Defaults to "lm_logs". This parameter is used in both 'All' and 'Individual' parameter sets.
+
+.PARAMETER SetupWebsite
+    A switch to control the setup of the website. This parameter is used in the 'Individual' parameter set.
+
+.PARAMETER SetupPortalMetrics
+    A switch to control the setup of the portal metrics. This parameter is used in the 'Individual' parameter set.
+
+.PARAMETER SetupAlertAnalysis
+    A switch to control the setup of the alert analysis. This parameter is used in the 'Individual' parameter set.
+
+.PARAMETER SetupLMContainer
+    A switch to control the setup of the LM container. This parameter is used in the 'Individual' parameter set.
+
+.PARAMETER LMContainerAPIUsername
+    The username for the LM Container API. Defaults to "lm_container". This parameter is used in both 'All' and 'Individual' parameter sets.
+
+.EXAMPLE
+    Initialize-LMPOVSetup -RunAll -IncludeDefaults -Website example.com
+
+    This command runs all setup processes including default options and creates a webcheck for example.com.
+
+.INPUTS
+    The function does not accept input from the pipeline.
+
+.OUTPUTS
+    The function does not return any output.
+
+.NOTES
+    The function throws an error if it fails to set up any component.
+#>
 Function Initialize-LMPOVSetup {
 
     [CmdletBinding(DefaultParameterSetName = 'Individual')]

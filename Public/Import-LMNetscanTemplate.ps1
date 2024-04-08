@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-Rebuild orginal out of box dyanmic resource groups.
+Import latest enhanced netscans as templates.
 
 .DESCRIPTION
-Rebuild orginal out of box dyanmic resource groups.
+Import latest enhanced netscans as templates.
 
 .EXAMPLE
 Import-LMNetscanTemplate -NetscanType vSphere -NetscanCollectorId 8 -NetscanGroupName "VMware Template"
@@ -177,6 +177,11 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.org.networks"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.org.collector.networks.csv"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.service.url"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"meraki.disableswitches"="<optional>"})
         
         #Default Meraki NetScan Creds/Props
         $Filters.Add(
@@ -299,6 +304,10 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"mist.api.org.sites"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"mist.api.org.collector.sites.csv"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"mist.api.url"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
         
         #Default Meraki NetScan Creds/Props
         $Filters.Add(
@@ -354,6 +363,7 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
         $CustomCredentials.Add([PSCustomObject]@{"aruba.sdwan.org.folder"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
 
         New-LMEnhancedNetScan `
             -CollectorId $CollectorId `

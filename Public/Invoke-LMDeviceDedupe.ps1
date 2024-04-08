@@ -6,7 +6,7 @@ List and/or remove duplicte devices from a portal based on a specified device gr
 List and/or remove duplicte devices from a portal based on a specified device group and set of exclusion criteria.
 
 .EXAMPLE
-Invoke-DeviceDedupe -ListDuplicates -DeviceGroupId 8
+Invoke-LMDeviceDedupe -ListDuplicates -DeviceGroupId 8
 
 .NOTES
 Additional arrays can be specified to exclude certain IPs, sysname and devicetypes from being used for duplicate comparison
@@ -20,7 +20,7 @@ Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
 .LINK
 PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
 #>
-Function Invoke-DeviceDedupe {
+Function Invoke-LMDeviceDedupe {
 
     [CmdletBinding()]
     Param (

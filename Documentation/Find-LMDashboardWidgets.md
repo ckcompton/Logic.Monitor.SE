@@ -5,71 +5,56 @@ online version:
 schema: 2.0.0
 ---
 
-# Import-LMNetscanTemplate
+# Find-LMDashboardWidgets
 
 ## SYNOPSIS
-Import latest enhanced netscans as templates.
+Find list of dashboard widgets containing mention of specified datasources
 
 ## SYNTAX
 
 ```
-Import-LMNetscanTemplate [-NetscanType] <Object> [-NetscanCollectorId] <Object> [[-NetscanGroupName] <Object>]
+Find-LMDashboardWidgets [-DatasourceNames] <String[]> [[-GroupPathSearchString] <String>]
  [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-Import latest enhanced netscans as templates.
+Find list of dashboard widgets containing mention of specified datasources
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Import-LMNetscanTemplate -NetscanType vSphere -NetscanCollectorId 8 -NetscanGroupName "VMware Template"
+Find-LMDashboardWidgets -DatasourceNames @("SNMP_NETWORK_INTERFACES","VMWARE_VCETNER_VM_PERFORMANCE")
 ```
 
 ## PARAMETERS
 
-### -NetscanType
-{{ Fill NetscanType Description }}
+### -DatasourceNames
+{{ Fill DatasourceNames Description }}
 
 ```yaml
-Type: Object
+Type: String[]
 Parameter Sets: (All)
-Aliases:
+Aliases: DatasourceName
 
 Required: True
 Position: 1
 Default value: None
-Accept pipeline input: False
+Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### -NetscanCollectorId
-{{ Fill NetscanCollectorId Description }}
+### -GroupPathSearchString
+{{ Fill GroupPathSearchString Description }}
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -NetscanGroupName
-{{ Fill NetscanGroupName Description }}
-
-```yaml
-Type: Object
+Type: String
 Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 3
-Default value: @default
+Position: 2
+Default value: *
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -94,11 +79,11 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None. Does not accept pipeline input.
+### DatasourceNames in an array. You can also pipe datasource names to this widget.
 ## OUTPUTS
 
 ## NOTES
-Groovy code will be pulled from the LM support site by default to ensure latest version is always used.
+Created groups will be placed in a main group called Azure Resources by Subscription in the parent group specified by the -ParentGroupId parameter
 
 ## RELATED LINKS
 

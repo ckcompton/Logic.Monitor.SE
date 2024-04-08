@@ -5,71 +5,78 @@ online version:
 schema: 2.0.0
 ---
 
-# Import-LMNetscanTemplate
+# Import-LMDeviceGroupsFromCSV
 
 ## SYNOPSIS
-Import latest enhanced netscans as templates.
+Imports list of device groups based on specified CSV file.
 
 ## SYNTAX
 
+### Import (Default)
 ```
-Import-LMNetscanTemplate [-NetscanType] <Object> [-NetscanCollectorId] <Object> [[-NetscanGroupName] <Object>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Import-LMDeviceGroupsFromCSV -FilePath <String> [-PassThru] [-ProgressAction <ActionPreference>]
+ [<CommonParameters>]
+```
+
+### Sample
+```
+Import-LMDeviceGroupsFromCSV [-GenerateExampleCSV] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-Import latest enhanced netscans as templates.
+Imports list of device groups based on specified CSV file.
+You can generate a sample of the CSV file by specifying the -GenerateExampleCSV parameter.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Import-LMNetscanTemplate -NetscanType vSphere -NetscanCollectorId 8 -NetscanGroupName "VMware Template"
+Import-LMDeviceGroupsFromCSV -FilePath ./ImportList.csv -PassThru
 ```
 
 ## PARAMETERS
 
-### -NetscanType
-{{ Fill NetscanType Description }}
+### -FilePath
+{{ Fill FilePath Description }}
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
+Type: String
+Parameter Sets: Import
 Aliases:
 
 Required: True
-Position: 1
+Position: Named
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -NetscanCollectorId
-{{ Fill NetscanCollectorId Description }}
+### -GenerateExampleCSV
+{{ Fill GenerateExampleCSV Description }}
 
 ```yaml
-Type: Object
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -NetscanGroupName
-{{ Fill NetscanGroupName Description }}
-
-```yaml
-Type: Object
-Parameter Sets: (All)
+Type: SwitchParameter
+Parameter Sets: Sample
 Aliases:
 
 Required: False
-Position: 3
-Default value: @default
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -PassThru
+{{ Fill PassThru Description }}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: Import
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -98,7 +105,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
-Groovy code will be pulled from the LM support site by default to ensure latest version is always used.
+Assumes csv with the headers name,fullpath,description,appliesTo,property1,property2,property\[n\].
+Name and fullpath are the only required fields.
 
 ## RELATED LINKS
 

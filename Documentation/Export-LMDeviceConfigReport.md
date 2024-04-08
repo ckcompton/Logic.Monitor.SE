@@ -15,13 +15,15 @@ Exports an HTML report containing changed network configs
 ### Device (Default)
 ```
 Export-LMDeviceConfigReport -DeviceId <Int32> [-InstanceNameFilter <Regex>] [-ConfigSourceNameFilter <Regex>]
- [-DaysBack <String>] -Path <String> [-OpenOnCompletion] [<CommonParameters>]
+ [-DaysBack <String>] -Path <String> [-OpenOnCompletion] [-ProgressAction <ActionPreference>]
+ [<CommonParameters>]
 ```
 
 ### DeviceGroup
 ```
 Export-LMDeviceConfigReport -DeviceGroupId <Int32> [-InstanceNameFilter <Regex>]
- [-ConfigSourceNameFilter <Regex>] [-DaysBack <String>] -Path <String> [-OpenOnCompletion] [<CommonParameters>]
+ [-ConfigSourceNameFilter <Regex>] [-DaysBack <String>] -Path <String> [-OpenOnCompletion]
+ [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -146,6 +148,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -ProgressAction
+{{ Fill ProgressAction Description }}
+
+```yaml
+Type: ActionPreference
+Parameter Sets: (All)
+Aliases: proga
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
@@ -159,7 +176,7 @@ You must run this command before you will be able to execute other commands incl
 
 ## RELATED LINKS
 
-[Module repo: https://github.com/stevevillardi/Logic.Monitor]()
+[Module repo: https://github.com/stevevillardi/Logic.Monitor.SE]()
 
-[PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor]()
+[PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE]()
 

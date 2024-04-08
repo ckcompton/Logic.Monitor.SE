@@ -8,25 +8,23 @@ schema: 2.0.0
 # Get-LMPOVActivityReport
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Generate list of active users in a portal along with associated activities.
 
 ## SYNTAX
 
 ```
-Get-LMPOVActivityReport [[-Portal] <String>] [[-DaysOfActivity] <Int32>] [<CommonParameters>]
+Get-LMPOVActivityReport [[-DaysOfActivity] <Int32>]
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Generate list of active users in a portal along with associated activities.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Get-LMPOVActivityReport -DaysOfActivity 30
+```
 
 ## PARAMETERS
 
@@ -40,35 +38,22 @@ Aliases:
 
 Required: False
 Position: 1
-Default value: None
+Default value: 14
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
-
-### -Portal
-{{ Fill Portal Description }}
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: 0
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### CommonParameters
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### None
+### None. Does not accept pipeline input
 ## OUTPUTS
 
-### System.Object
 ## NOTES
+Must be connected to the portal you want to pull activity reports from ahead of time.
 
 ## RELATED LINKS
+
+[Module repo: https://github.com/stevevillardi/Logic.Monitor.SE]()
+
+[PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE]()
+

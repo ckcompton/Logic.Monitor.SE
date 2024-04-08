@@ -1,3 +1,43 @@
+<#
+.SYNOPSIS
+    This function invokes a keep-alive signal for Logic Monitor Push Metrics.
+
+.DESCRIPTION
+    The Invoke-LMPushMetricKeepAlive function sends a keep-alive signal to a device using Logic Monitor's Push Metrics. 
+    It uses a device object passed as a parameter and has default values for various other parameters related to the datasource and datapoint.
+
+.PARAMETER DeviceObject
+    The device object for which the keep-alive signal is to be sent. This is a mandatory parameter and can be piped to the function.
+
+.PARAMETER DatasourceGroupName
+    The name of the datasource group. Defaults to "Host Status".
+
+.PARAMETER DatasourceName
+    The name of the datasource. Defaults to "PushMetricKeepAlive_PMv1".
+
+.PARAMETER DatasourceDisplayName
+    The display name of the datasource. Defaults to "PushMetric Keep Alive".
+
+.PARAMETER InstanceName
+    The name of the instance. Defaults to "PushMetric_Keep_Alive".
+
+.PARAMETER DataPointName
+    The name of the datapoint. Defaults to "KeepAlive".
+
+.EXAMPLE
+    Invoke-LMPushMetricKeepAlive -DeviceObject $Device
+
+    This command sends a keep-alive signal to the device represented by the $Device object.
+
+.INPUTS
+    PSCustomObject. You can pipe a device object to Invoke-LMPushMetricKeepAlive.
+
+.OUTPUTS
+    The function does not return any output.
+
+.NOTES
+    The function throws an error if it fails to send the keep-alive signal.
+#>
 Function Invoke-LMPushMetricKeepAlive {
     Param (
         [Parameter(Mandatory,ValueFromPipeline)]

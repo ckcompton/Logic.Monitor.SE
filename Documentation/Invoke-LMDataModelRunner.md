@@ -14,9 +14,10 @@ Invokes Submit-LMDataModel for an array of models
 
 ```
 Invoke-LMDataModelRunner -BearerToken <String> -AccountName <String> -ModelPath <String>
- [-LogSourceName <String>] [-LogFileName <String>] [-LogResult] [-LogResourceId <Hashtable>]
- [-LogAdditionalMetadata <Hashtable>] [-ConcurrencyLimit <Int32>] [-MultiThreadDatasourceSubmission]
- [-RunPreFlightScripts] [<CommonParameters>]
+ [-LogSourceName <String>] [-DatasourceSuffix <String>] [-LogFileName <String>] [-LogResult]
+ [-LogResourceId <Hashtable>] [-LogAdditionalMetadata <Hashtable>] [-ConcurrencyLimit <Int32>]
+ [-MultiThreadDatasourceSubmission] [-RunPreFlightScripts] [-ProgressAction <ActionPreference>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -88,6 +89,21 @@ Aliases:
 Required: False
 Position: Named
 Default value: PMv1
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -DatasourceSuffix
+{{ Fill DatasourceSuffix Description }}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: _PMv1
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -195,6 +211,21 @@ Aliases:
 Required: False
 Position: Named
 Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ProgressAction
+{{ Fill ProgressAction Description }}
+
+```yaml
+Type: ActionPreference
+Parameter Sets: (All)
+Aliases: proga
+
+Required: False
+Position: Named
+Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

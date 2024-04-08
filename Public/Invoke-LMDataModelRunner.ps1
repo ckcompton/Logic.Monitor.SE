@@ -123,7 +123,7 @@ Function Invoke-LMDataModelRunner {
             }
             Else{
                 #Connect to portal
-                Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging
+                Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging -SkipCredValidation
 
                 $ModelResult = Measure-Command {Submit-LMDataModel -ModelObject $_ -DatasourceSuffix $using:DatasourceSuffix}
             }
@@ -137,7 +137,7 @@ Function Invoke-LMDataModelRunner {
             #Send Log Message with Result
             If($using:LogResult){
                 If($using:MultiThreadDatasourceSubmission){
-                    Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging
+                    Connect-LMAccount -BearerToken $using:BearerToken -AccountName $using:AccountName -SkipVersionCheck -DisableConsoleLogging -SkipCredValidation
                 }
                 $DSList = $_.Datasources.DatasourceName -join ","
                 Send-LMLogMessage -Message $LastRunLog -resourceMapping $using:LogResourceId -Metadata $($using:LogAdditionalMetadata + @{"modelSimulationType"=$_.SimulationType;"modelDatasourceList"=$DSList;"modelRuntimeInMin"=$ModelTime;"modelLogSource"=$using:LogSourceName;"modelDeviceDisplayName"=$_.DisplayName})

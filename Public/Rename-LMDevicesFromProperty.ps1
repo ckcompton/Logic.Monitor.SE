@@ -1,3 +1,35 @@
+<#
+.SYNOPSIS
+    This function renames Logic Monitor devices based on a specified property.
+
+.DESCRIPTION
+    The Rename-LMDevicesFromProperty function renames devices in Logic Monitor based on a specified property. 
+    The property can be a system property, a custom property, or an auto property. 
+    The function uses the Set-LMDevice cmdlet to rename the devices.
+
+.PARAMETER Device
+    The device or devices to be renamed. This is a mandatory parameter and can be piped to the function.
+
+.PARAMETER SourceProperty
+    The property based on which the devices are to be renamed. Defaults to "system.sysname".
+
+.PARAMETER PropertyType
+    The type of the property. Can be "system", "custom", or "auto". Defaults to "system".
+
+.EXAMPLE
+    Rename-LMDevicesFromProperty -Device $Device -SourceProperty "system.hostname" -PropertyType "system"
+
+    This command renames the device represented by the $Device object based on the system property "system.hostname".
+
+.INPUTS
+    System.Object[]. You can pipe a device or an array of devices to Rename-LMDevicesFromProperty.
+
+.OUTPUTS
+    The function does not return any output. It displays a message for each device that is renamed or skipped.
+
+.NOTES
+    The function throws an error if it fails to rename a device.
+#>
 Function Rename-LMDevicesFromProperty{
     [CmdletBinding()]
     Param(

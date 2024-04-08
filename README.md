@@ -5,17 +5,20 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## 1.6.2
+## 1.6.3
 ###### Important Note:
-- **PowerShell Core Minimum Version**:
-  - Starting with version 1.6.1 and above, the minimum version of PowerShell required to use the Logic.Monitor.SE module has be bumped from 7.0 -> 7.4. Ensure you are on the latest version of PSCore before you attempt to upgrade to 1.6.1. This change was made to allow for usage of the newer capabilities avaiable in the LTS verison of PSCore. The Logic.Monitor module will remain at a required version of 5.1.
-
-###### New Cmdlets:
-- **Invoke-LMPushMetricKeepAlive**: 
-  - Cmdlet for use with Invoke-LMDataModelRunner in order to keep PushMetrics devices alive when ingesting PushMetric data at a rate greater than 5 minutes.
+- **Updated Cmdlet Documentation**:
+  - All cmdlets should now have examples and full synopsis documentaiton. Use ```Get-Help <cmdlet_name>``` to see updated help info.
 
 ###### Updated Cmdlets:
-- **Import-LMDevicesFromCSV**: 
-  - Fixed bug that would not allow a property to be set if it was not set for every device set for import.
+- **Import-DeviceDedupe**: 
+  - Renamed cmdlet to be inline with the naming scheme for exisitng cmdlets. Going forward this cmdlet is now exported under the name **Import-LMDeviceDedupe**.
+
+- **Submit-LMDataModel(Concurrent)**:
+  - Both cmdlets have been updated to skip credential validation in order to reduce API calls.
+  - Cmdlets will now check if PushModules created by model submission have a 600 second collection interval and if not present will be updated automatically. This prevents graphing gaps when PushMetrics submission is set to a 10 minute interval.
+
+ - **Import-LMNetscanTemplate**:
+   - Updated netscan properties to reflect latest versions of enhanced netscans. Also updated cached netscan scripts to reflect latest netscan versions in the event pulling them from the support site fails.
 
 [Previous Release Notes](RELEASENOTES.md)

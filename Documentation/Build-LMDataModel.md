@@ -16,14 +16,15 @@ Generates a data model for ingest by PushMetrics
 ```
 Build-LMDataModel -DatasourceNames <System.Collections.Generic.List`1[System.Object]> [-IncludeModuleGraphs]
  [-IncludeAlertThresholds] [-GenerateInstances] -InstanceCount <Int32> [-SimulationType <String>]
- -DeviceHostName <String> [-DeviceDisplayName <String>] [<CommonParameters>]
+ -DeviceHostName <String> [-DeviceDisplayName <String>] [-ProgressAction <ActionPreference>]
+ [<CommonParameters>]
 ```
 
 ### GenerateInstances
 ```
 Build-LMDataModel [-IncludeModuleGraphs] [-IncludeAlertThresholds] [-GenerateInstances]
  [-InstanceCount <Int32>] [-SimulationType <String>] -DeviceHostName <String> [-DeviceDisplayName <String>]
- [<CommonParameters>]
+ [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### ModelDevice
@@ -31,7 +32,7 @@ Build-LMDataModel [-IncludeModuleGraphs] [-IncludeAlertThresholds] [-GenerateIns
 Build-LMDataModel [-IncludeModuleGraphs] [-IncludeAlertThresholds] [-SimulationType <String>]
  -DeviceHostName <String> [-DeviceDisplayName <String>] -ModelDeviceHostName <String>
  [-IncludeModelDeviceProperties] [-ModelDeviceInstanceCount <String>] [-IncludeModelDeviceData]
- [<CommonParameters>]
+ [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -41,7 +42,7 @@ Using a sample device or list of Datasources, will generate a model that can be 
 
 ### EXAMPLE 1
 ```
-Submit-LMDataModel -ModelObject $Model -DatasourceSuffix "PMv1" -ForceGraphProvisioning
+Build-LMDataModel -ModelDeviceHostName "192.168.1.13" -IncludeAlertThresholds -IncludeModuleGraphs -DeviceHostName 1.1.1.17 -DeviceDisplayName LocalHost7
 ```
 
 ## PARAMETERS
@@ -251,6 +252,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -ProgressAction
+{{ Fill ProgressAction Description }}
+
+```yaml
+Type: ActionPreference
+Parameter Sets: (All)
+Aliases: proga
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
@@ -259,7 +275,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ### None. You cannot pipe objects to this command.
 ## OUTPUTS
 
-### System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=7.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]
+### System.Collections.Generic.List`1[[System.Object, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]
 ## NOTES
 
 ## RELATED LINKS

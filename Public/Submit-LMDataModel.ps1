@@ -117,6 +117,11 @@ Function Submit-LMDataModel{
                 $PMGraphs = Get-LMDatasourceGraph -DataSourceId $PMDatasource.Id
                 $PMOverviewGraphs = Get-LMDatasourceOverviewGraph -DataSourceId $PMDatasource.Id
 
+                If($PMDatasource.collectInterval -eq 60){
+                    Write-Debug "$DatasourceName found with default collection interval, setting to 600 seconds."
+                    Set-LMDatasource -Id $PMDatasource.Id -PollingIntervalInSeconds 600 | Out-Null
+                }
+
                 If((!$PMGraphs -or $ForceGraphProvisioning) -and $Model.Graphs){
                     Write-Debug "No instance graphs found or force creation specified, importing graph definitions from model."
                     Foreach($Graph in $Model.Graphs){

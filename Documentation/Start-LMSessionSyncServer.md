@@ -8,45 +8,33 @@ schema: 2.0.0
 # Start-LMSessionSyncServer
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+This function starts a session synchronization server for Logic Monitor.
 
 ## SYNTAX
 
 ```
-Start-LMSessionSyncServer [-EnableRequestLogging] [-EnableErrorLogging] [<CommonParameters>]
+Start-LMSessionSyncServer [-EnableRequestLogging] [-EnableErrorLogging]
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+The Start-LMSessionSyncServer function starts a Pode server that is used to synchronize sessions for Logic Monitor. 
+It uses a secret vault to store session details.
+If the vault does not exist, it creates one. 
+The function also provides options to enable request logging and error logging.
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+Start-LMSessionSyncServer -EnableRequestLogging -EnableErrorLogging
 ```
 
-{{ Add example description here }}
+This command starts the session synchronization server with request logging and error logging enabled.
 
 ## PARAMETERS
 
-### -EnableErrorLogging
-{{ Fill EnableErrorLogging Description }}
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### -EnableRequestLogging
-{{ Fill EnableRequestLogging Description }}
+A switch to control whether request logging is enabled.
 
 ```yaml
 Type: SwitchParameter
@@ -55,20 +43,33 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### CommonParameters
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
+### -EnableErrorLogging
+A switch to control whether error logging is enabled.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
 
 ## INPUTS
 
-### None
+### None. You cannot pipe objects to Start-LMSessionSyncServer.
 ## OUTPUTS
 
-### System.Object
+### The function does not return any output. It writes messages to the host to indicate the status of the server and the secret vault.
 ## NOTES
+The function throws an error if it fails to unlock the secret vault with the provided credentials.
 
 ## RELATED LINKS
