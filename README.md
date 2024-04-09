@@ -8,7 +8,7 @@ PowerShell modules with utilities used by Sales Engineering.
 ## 1.6.3
 ###### Important Note:
 - **Updated Cmdlet Documentation**:
-  - All cmdlets should now have examples and full synopsis documentaiton. Use ```Get-Help <cmdlet_name>``` to see updated help info.
+  - All cmdlets should now have examples and full synopsis documentation. Use ```Get-Help <cmdlet_name>``` to see updated help info.
 
 ###### Updated Cmdlets:
 - **Import-DeviceDedupe**: 
