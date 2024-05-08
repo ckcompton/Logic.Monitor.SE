@@ -27,6 +27,6 @@ PowerShell modules with utilities used by Sales Engineering.
 
 ###### **Updated Cmdlets**:
 - **Import-LMDevicesFromCSV**: 
-  - Added the ability to specify an ABCG as part of the import process. The ABCG id can be set globally using the ```-AutoBalancedCollectorGroupId``` parameter or by setting the value of ```abcgid``` in the reference CSV file. If using ABCGs you should leave the ```collectorgroupid``` blank and set the ```collectorid``` to 0.
+  - Added the ability to specify an ABCG as part of the import process. The ABCG id can be set globally using the ```-AutoBalancedCollectorGroupId``` parameter or by setting the value of ```abcgid``` in the reference CSV file. If using ABCGs you should set the ```collectorid``` to 0.
 
 [Previous Release Notes](RELEASENOTES.md)
