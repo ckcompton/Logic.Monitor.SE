@@ -1,24 +1,43 @@
 <#
 .SYNOPSIS
-Imports list of devices based on specified CSV file
+Imports devices from a CSV file into LogicMonitor.
+
 .DESCRIPTION
-Imports list of devices based on specified CSV file. This will also create any groups specified in the hostgroups field so they are not required to exist ahead of import. Hostgroup should be the intended full path to the device. You can generate a sample of the CSV file by specifying the -GenerateExampleCSV parameter.
+The Import-LMDevicesFromCSV function imports devices from a CSV file into LogicMonitor. It requires a valid CSV file containing device information such as IP address, display name, host group, collector ID, and description. The function checks if the user is logged in and has valid API credentials before importing the devices.
+
+.PARAMETER FilePath
+Specifies the path to the CSV file containing the device information. This parameter is mandatory when the 'Import' parameter set is used.
+
+.PARAMETER GenerateExampleCSV
+Generates an example CSV file with sample device information. This parameter is optional and can be used with the 'Sample' parameter set.
+
+.PARAMETER PassThru
+Indicates whether to return the imported devices as output. This parameter is optional and can be used with the 'Import' parameter set.
+
+.PARAMETER CollectorId
+Specifies the collector ID to assign to the imported devices. This parameter is optional and can be used with the 'Import' parameter set.
+
+.PARAMETER CollectorGroupId
+Specifies the non ABCG collector group ID to assign to the imported devices. This parameter is optional and can be used with the 'Import' parameter set.
+
+.PARAMETER AutoBalancedCollectorGroupId
+Specifies the auto-balanced collector group ID to assign to the imported devices. This parameter is optional and can be used with the 'Import' parameter set.
 
 .EXAMPLE
-Import-LMDevicesFromCSV -FilePath ./ImportList.csv -PassThru -CollectorId 8
+Import-LMDevicesFromCSV -FilePath "C:\Devices.csv" -CollectorId 1234
+Imports devices from the "Devices.csv" file located at "C:\Devices.csv" and assigns the collector with ID 1234 to the imported devices.
+
+.EXAMPLE
+Import-LMDevicesFromCSV -GenerateExampleCSV
+Generates an example CSV file named "SampleLMDeviceImportCSV.csv" in the current directory with sample device information.
 
 .NOTES
-Assumes csv with the headers ip,displayname,hostgroup,collectorid,description,property1,property2,property[n]. Ip, displayname and collectorid are the only required fields.
-
-.INPUTS
-None. Does not accept pipeline input.
-
-.LINK
-Module repo: https://github.com/stevevillardi/Logic.Monitor.SE
-
-.LINK
-PSGallery: https://www.powershellgallery.com/packages/Logic.Monitor.SE
+- This function requires valid API credentials to connect to LogicMonitor.
+- The CSV file must have the following columns: ip, displayname, hostgroup. collectorid, collectorgroupid, description, property.name1, property.name2.. are optional.
+- The function creates device groups if they don't exist based on the host group path specified in the CSV file.
+- If the collector ID is not specified in the CSV file, the function uses the collector ID specified by the CollectorId parameter.
 #>
+
 Function Import-LMDevicesFromCSV {
     [CmdletBinding(DefaultParameterSetName="Import")]
     param (
@@ -33,7 +52,15 @@ Function Import-LMDevicesFromCSV {
         [Switch]$PassThru,
         
         [Parameter(ParameterSetName="Import")]
-        [Int]$CollectorId
+        [Int]$CollectorId,
+
+        [Parameter(ParameterSetName="Import")]
+        [Nullable[Int]]$CollectorGroupId,
+
+        [Parameter(ParameterSetName="Import")]
+        [Nullable[Int]]$AutoBalancedCollectorGroupId
+
+
     )
     #Check if we are logged in and have valid api creds
     Begin {
@@ -41,16 +68,18 @@ Function Import-LMDevicesFromCSV {
     }
     Process {
         If($GenerateExampleCSV){
-            $SampleCSV = ("ip,displayname,hostgroup,collectorid,description,property.name1,property.name2").Split(",")
+            $SampleCSV = ("ip,displayname,hostgroup,collectorid,collectorgroupid,abcgid,description,snmp.community,property.name2").Split(",")
 
             [PSCustomObject]@{
                 $SampleCSV[0]="192.168.1.1"
                 $SampleCSV[1]="SampleDeviceName"
                 $SampleCSV[2]="Full/Path/To/Resource"
-                $SampleCSV[3]="8"
-                $SampleCSV[4]="My sample device"
-                $SampleCSV[5]="property value 1"
-                $SampleCSV[6]="property value 2"
+                $SampleCSV[3]="0"
+                $SampleCSV[4]="$null"
+                $SampleCSV[5]="1"
+                $SampleCSV[6]="My sample device"
+                $SampleCSV[7]="public"
+                $SampleCSV[8]="property value 2"
             } | Export-Csv "SampleLMDeviceImportCSV.csv"  -Force -NoTypeInformation
 
             Write-Host "[INFO]: Saved sample CSV (SampleLMDeviceImportCSV.csv) to current directory."
@@ -87,9 +116,35 @@ Function Import-LMDevicesFromCSV {
                             }
                         }
 
-                        If($Device.collectorid){$CollectorId = $Device.collectorid}
+                        #Parameter takes precedence over csv value
+                        If(!$CollectorId){$CollectorId = $Device.collectorid}
 
-                        $Device = New-LMDevice -name $Device.ip -DisplayName $Device.displayname -Description $Device.description -PreferredCollectorId $CollectorId -HostGroupIds $GroupId -Properties $Properties -ErrorAction Stop
+                        #Parameter takes precedence over csv value
+                        If(!$CollectorGroupId){$CollectorGroupId = $Device.collectorgroupid}
+
+                        #Parameter takes precedence over csv value
+                        If(!$AutoBalancedCollectorGroupId){$AutoBalancedCollectorGroupId = $Device.abcgid}
+
+                        If(!$CollectorId){
+                            Write-Error "[ERROR]: CollectorId is required for device import, please ensure you have a valid collector id in your csv file."
+                            Break
+                        }
+
+                        $DeviceParams = @{
+                            Name = $Device.ip
+                            DisplayName = $Device.displayname
+                            Description = $Device.description
+                            PreferredCollectorId = $CollectorId
+                            PreferredCollectorGroupId = $CollectorGroupId
+                            AutoBalancedCollectorGroupId = $AutoBalancedCollectorGroupId
+                            HostGroupIds = $GroupId
+                            Properties = $Properties
+                            ErrorAction = "Stop"
+                            }
+                            
+                        @($DeviceParams.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($DeviceParams[$_])) { $DeviceParams.Remove($_) } }
+
+                        $Device = New-LMDevice @DeviceParams
                         $Results.Add($Device) | Out-Null
                         $i++
                     }

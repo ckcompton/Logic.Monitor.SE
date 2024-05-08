@@ -5,20 +5,29 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## 1.6.3
-###### Important Note:
+## Version 1.7
+###### **Important Note**:
 - **Updated Cmdlet Documentation**:
   - All cmdlets should now have examples and full synopsis documentation. Use ```Get-Help <cmdlet_name>``` to see updated help info.
 
-###### Updated Cmdlets:
-- **Import-DeviceDedupe**: 
-  - Renamed cmdlet to be inline with the naming scheme for exisitng cmdlets. Going forward this cmdlet is now exported under the name **Import-LMDeviceDedupe**.
+###### **New Cmdlets**:
+- **Import-LMMultiCredentialConfig**:
+  - This cmdlet imports multi-credential configuration for LogicMonitor. It allows you to specify multi SNMP and SSH credentials either as objects or by providing a CSV file path. It also provides options to generate example CSV files and specify the credential group and import group names.
+  ```
 
-- **Submit-LMDataModel(Concurrent)**:
-  - Both cmdlets have been updated to skip credential validation in order to reduce API calls.
-  - Cmdlets will now check if PushModules created by model submission have a 600 second collection interval and if not present will be updated automatically. This prevents graphing gaps when PushMetrics submission is set to a 10 minute interval.
+  #Imports multi-credential configuration using SNMP and SSH credentials provided as objects. The dynamic credential groups will be created under the "MyCredentialGroup" group, and the device onboard group will be called "MyImportGroup".
+  Import-LMMultiCredentialConfig -SNMPCredentialsObject $SNMPCredentials -SSHCredentialsObject $SSHCredentials -CredentialGroupName "MyCredentialGroup" -ImportGroupName "MyImportGroup"
 
- - **Import-LMNetscanTemplate**:
-   - Updated netscan properties to reflect latest versions of enhanced netscans. Also updated cached netscan scripts to reflect latest netscan versions in the event pulling them from the support site fails.
+  #Imports multi-credential configuration using SNMP and SSH credentials provided in CSV files located at the specified file paths.
+  Import-LMMultiCredentialConfig -SNMPCsvFilePath "C:\Path\To\SNMPCredentials.csv" -SSHCsvFilePath "C:\Path\To\SSHCredentials.csv"
+
+  #Generates example CSV files for SSH and SNMP credentials.
+  Import-LMMultiCredentialConfig -GenerateExampleCSV
+  ```
+
+
+###### **Updated Cmdlets**:
+- **Import-LMDevicesFromCSV**: 
+  - Added the ability to specify an ABCG as part of the import process. The ABCG id can be set globally using the ```-AutoBalancedCollectorGroupId``` parameter or by setting the value of ```abcgid``` in the reference CSV file. If using ABCGs you should leave the ```collectorgroupid``` blank and set the ```collectorid``` to 0.
 
 [Previous Release Notes](RELEASENOTES.md)
