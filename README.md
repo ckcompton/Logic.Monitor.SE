@@ -14,7 +14,6 @@ PowerShell modules with utilities used by Sales Engineering.
 - **Import-LMMultiCredentialConfig**:
   - This cmdlet imports multi-credential configuration for LogicMonitor. It allows you to specify multi SNMP and SSH credentials either as objects or by providing a CSV file path. It also provides options to generate example CSV files and specify the credential group and import group names.
   ```
-
   #Imports multi-credential configuration using SNMP and SSH credentials provided as objects. The dynamic credential groups will be created under the "MyCredentialGroup" group, and the device onboard group will be called "MyImportGroup".
   Import-LMMultiCredentialConfig -SNMPCredentialsObject $SNMPCredentials -SSHCredentialsObject $SSHCredentials -CredentialGroupName "MyCredentialGroup" -ImportGroupName "MyImportGroup"
 
