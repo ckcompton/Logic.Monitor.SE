@@ -17,9 +17,6 @@ Indicates whether to return the imported devices as output. This parameter is op
 .PARAMETER CollectorId
 Specifies the collector ID to assign to the imported devices. This parameter is optional and can be used with the 'Import' parameter set.
 
-.PARAMETER CollectorGroupId
-Specifies the non ABCG collector group ID to assign to the imported devices. This parameter is optional and can be used with the 'Import' parameter set.
-
 .PARAMETER AutoBalancedCollectorGroupId
 Specifies the auto-balanced collector group ID to assign to the imported devices. This parameter is optional and can be used with the 'Import' parameter set.
 
@@ -52,10 +49,7 @@ Function Import-LMDevicesFromCSV {
         [Switch]$PassThru,
         
         [Parameter(ParameterSetName="Import")]
-        [Int]$CollectorId,
-
-        [Parameter(ParameterSetName="Import")]
-        [Nullable[Int]]$CollectorGroupId,
+        [Nullable[Int]]$CollectorId,
 
         [Parameter(ParameterSetName="Import")]
         [Nullable[Int]]$AutoBalancedCollectorGroupId
@@ -68,7 +62,7 @@ Function Import-LMDevicesFromCSV {
     }
     Process {
         If($GenerateExampleCSV){
-            $SampleCSV = ("ip,displayname,hostgroup,collectorid,collectorgroupid,abcgid,description,snmp.community,property.name2").Split(",")
+            $SampleCSV = ("ip,displayname,hostgroup,collectorid,abcgid,description,snmp.community,property.name2").Split(",")
 
             [PSCustomObject]@{
                 $SampleCSV[0]="192.168.1.1"
@@ -91,7 +85,7 @@ Function Import-LMDevicesFromCSV {
 
             If($DeviceList){
                 #Get property headers for adding to property hashtable
-                $PropertyHeaders = ($DeviceList | Get-Member -MemberType NoteProperty).Name | Where-Object {$_ -notmatch "ip|displayname|hostgroup|collectorid|description"}
+                $PropertyHeaders = ($DeviceList | Get-Member -MemberType NoteProperty).Name | Where-Object {$_ -notmatch "ip|displayname|hostgroup|collectorid|abcgid|description"}
                 
                 $i = 1
                 $DeviceCount = ($DeviceList | Measure-Object).Count
@@ -117,15 +111,12 @@ Function Import-LMDevicesFromCSV {
                         }
 
                         #Parameter takes precedence over csv value
-                        If(!$CollectorId){$CollectorId = $Device.collectorid}
+                        If(!$CollectorId){$SetCollectorId = $Device.collectorid}Else{$SetCollectorId = $CollectorId}
 
                         #Parameter takes precedence over csv value
-                        If(!$CollectorGroupId){$CollectorGroupId = $Device.collectorgroupid}
+                        If(!$AutoBalancedCollectorGroupId){$SetAutoBalancedCollectorGroupId = $Device.abcgid}Else{$SetAutoBalancedCollectorGroupId = $AutoBalancedCollectorGroupId}
 
-                        #Parameter takes precedence over csv value
-                        If(!$AutoBalancedCollectorGroupId){$AutoBalancedCollectorGroupId = $Device.abcgid}
-
-                        If(!$CollectorId){
+                        If($null -eq $SetCollectorId){
                             Write-Error "[ERROR]: CollectorId is required for device import, please ensure you have a valid collector id in your csv file."
                             Break
                         }
@@ -134,14 +125,14 @@ Function Import-LMDevicesFromCSV {
                             Name = $Device.ip
                             DisplayName = $Device.displayname
                             Description = $Device.description
-                            PreferredCollectorId = $CollectorId
-                            PreferredCollectorGroupId = $CollectorGroupId
-                            AutoBalancedCollectorGroupId = $AutoBalancedCollectorGroupId
+                            PreferredCollectorId = $SetCollectorId
+                            AutoBalancedCollectorGroupId = $SetAutoBalancedCollectorGroupId
                             HostGroupIds = $GroupId
                             Properties = $Properties
                             ErrorAction = "Stop"
                             }
-                            
+
+                        #Remove empty values from hashtable
                         @($DeviceParams.keys) | ForEach-Object { if ([string]::IsNullOrEmpty($DeviceParams[$_])) { $DeviceParams.Remove($_) } }
 
                         $Device = New-LMDevice @DeviceParams
