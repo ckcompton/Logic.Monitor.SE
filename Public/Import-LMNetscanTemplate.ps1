@@ -79,6 +79,10 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"view.hostAndCluster"="true"})
         $CustomCredentials.Add([PSCustomObject]@{"view.vmsAndTemplates"="true"})
         $CustomCredentials.Add([PSCustomObject]@{"view.standaloneVm"="true"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
+        $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
+        $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
         
         #Default vCenter NetScan Creds/Props
         $Filters.Add(
@@ -179,8 +183,8 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"meraki.service.url"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
         $CustomCredentials.Add([PSCustomObject]@{"lmaccess.key"="LM API access Key"})
-        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.disableswitches"="<optional>"})
         
         #Default Meraki NetScan Creds/Props

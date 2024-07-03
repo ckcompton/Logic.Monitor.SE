@@ -137,6 +137,7 @@ Function Initialize-LMPOVSetup {
                 "Cisco ASA" = 'hasCategory("CiscoASA")'
                 "Logs Enabled Devices" = 'hasPushModules("LogUsage")'
                 "Netflow Enabled Devices" = 'isNetflow()'
+                "Meraki Devices" = 'meraki.productType'
                 "Cisco UCS" = 'hasCategory("CiscoUCSFabricInterconnect") || hasCategory("CiscoUCSManager")'
                 "Oracle" = 'hasCategory("OracleDB")'
                 "Domain Controllers" = 'hasCategory("MicrosoftDomainController")'

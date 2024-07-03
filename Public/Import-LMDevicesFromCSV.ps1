@@ -62,7 +62,7 @@ Function Import-LMDevicesFromCSV {
     }
     Process {
         If($GenerateExampleCSV){
-            $SampleCSV = ("ip,displayname,hostgroup,collectorid,abcgid,description,snmp.community,property.name2").Split(",")
+            $SampleCSV = ("ip,displayname,hostgroup,collectorid,abcgid,description,snmp.community,property.name1,property.name2").Split(",")
 
             [PSCustomObject]@{
                 $SampleCSV[0]="192.168.1.1"
@@ -70,9 +70,9 @@ Function Import-LMDevicesFromCSV {
                 $SampleCSV[2]="Full/Path/To/Resource"
                 $SampleCSV[3]="0"
                 $SampleCSV[4]="$null"
-                $SampleCSV[5]="1"
-                $SampleCSV[6]="My sample device"
-                $SampleCSV[7]="public"
+                $SampleCSV[5]="My sample device"
+                $SampleCSV[6]="public"
+                $SampleCSV[7]="property value 1"
                 $SampleCSV[8]="property value 2"
             } | Export-Csv "SampleLMDeviceImportCSV.csv"  -Force -NoTypeInformation
 
