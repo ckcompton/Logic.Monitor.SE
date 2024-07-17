@@ -95,6 +95,9 @@ Function Initialize-LMPOVSetup {
         [Switch]$SetupWindowsLMLogs,
 
         [Parameter(ParameterSetName = 'Individual')]
+        [Switch]$WindowsLogSource,
+
+        [Parameter(ParameterSetName = 'Individual')]
         [Parameter(ParameterSetName = 'All')]
         [Switch]$IncludeDefaults,
 
@@ -366,67 +369,100 @@ Function Initialize-LMPOVSetup {
             }
 
             If($SetupWindowsLMLogs -or $RunAll){
-                $LogsAPIRoleName = "lm-logs-ingest"
-                $LogsAPIUser = Get-LMUser -Name "$LogsAPIUsername"
-                $LogsAPIRole = Get-LMRole -Name $LogsAPIRoleName
-                If(!$LogsAPIRole){
-                    Write-Host "[INFO]: Setting up LM Logs API Role: $LogsAPIRoleName"
-                    $LogsAPIRole = New-LMRole -Name $LogsAPIRoleName -ResourcePermission view -LogsPermission manage -Description "Auto provisioned to allow for windows events ingest via datasource"
-                    If($LogsAPIRole){
-                        Write-Host "[INFO]: Successfully setup API role: $LogsAPIRoleName"
-                    }
-                }
-                Else{
-                    Write-Host "[INFO]: LM Logs API Role ($LogsAPIRoleName) already exists in portal, skipping setup" -ForegroundColor Gray
-                }
-
-                If(!$LogsAPIUser){
-                    Write-Host "[INFO]: Setting up LM Logs API user: $LogsAPIUsername"
-                    $LogsAPIUser = New-LMAPIUser -Username "$LogsAPIUsername" -note "Auto provisioned for use with Windows LM Logs Datasource" -RoleNames @($LogsAPIRoleName)
-                    If ($LogsAPIUser) {
-                        Write-Host "[INFO]: Successfully setup API user: $LogsAPIUsername"
-        
-                        Write-Host "[INFO]: Creating administrator API token for user: $LogsAPIUsername"
-                        $LMLogsAPIINfo = New-LMAPIToken -id $LogsAPIUser.id -Note "Auto provisioned for use with Windows LM Logs Datasource"
-                    }
-        
-                    #Import Datasource and apply properties to windows server group
-                    If ($LMLogsAPIINfo) {
-                        Write-Host "[INFO]: Successfully created API token for user: $LogsAPIUsername | $($LMLogsAPIINfo.accessId) | $($LMLogsAPIINfo.accessKey)"
-        
-                        $WindowsServerDeviceGroup =  Get-LMDeviceGroup -Name "Windows Servers" | Where-Object {$_.fullPath -like "Devices by Type*"}
-
-
-                        If ($WindowsServerDeviceGroup) {
-                            Write-Host "[INFO]: Adding API properties to Windows Server device group"
-                            $UpdatedWindowsServerDeviceGroup = Set-LMDeviceGroup -Id $WindowsServerDeviceGroup.Id -Properties @{"lmaccess.id" = $LMLogsAPIINfo.accessId; "lmaccess.key" = $LMLogsAPIINfo.accessKey; "lmaccount" = $PortalName; "lmlogs.winevent.channels" = $WindowsLMLogsEventChannels; "lmlogs.winevent.detailed_message" = "false" }
-                            If ($UpdatedWindowsServerDeviceGroup) {
-                                Write-Host "[INFO]: Successfully updated Windows Server device group for LM Logs"
+                #Setup Windows Events Logsource
+                If($WindowsLogSource){
+                    Write-Host "[INFO]: Setting up Windows Events LogSource"
+                    $ModuleList = @(
+                        @{
+                            name = "Windows_Events.xml"
+                            type = "logsource"
+                            repo = "LogicMonitor-Dashboards/main/POV"
+                        }
+                    )
+    
+                    Foreach($Module in $ModuleList){
+                        $ModuleName = $Module.name.Split(".")[0]
+                        $LogicModule = Get-LMLogSource -name $ModuleName
+                        If(!$LogicModule){
+                            Try{
+                                $LogicModule = (Invoke-WebRequest -Uri "$GitubURI/$($Module.repo)/$($Module.name)").Content
+                                Import-LMLogicModule -File $LogicModule -Type $Module.type -ErrorAction Stop
+                                Write-Host "[INFO]: Successfully imported $ModuleName logsource"
+                            }
+                            Catch{
+                                #Oops
+                                Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
                             }
                         }
-
-
+                        Else{
+                            Write-Host "[INFO]: LogicModule LogSource $ModuleName already exists, skipping import" -ForegroundColor Gray
+                        }
                     }
                 }
                 Else{
-                    Write-Host "[INFO]: LM Logs API User ($LogsAPIUsername) already exists in portal, skipping setup" -ForegroundColor Gray
-                }
-
-                #Import LM Logs Datasource
-                $LogsDatasource = Get-LMDatasource -Name "Windows_Events_LMLogs"
-                If(!$LogsDatasource){
-                    Import-LMExchangeModule -LMExchangeId "2cb0a988-487a-48a6-b332-62003ef3b3dc" #core module
-                    Start-Sleep -Seconds 5 #Added manual pause to ensure datasource is available after importing from the exchange
-                    $LogsDatasource = Set-LMDatasource -Name Windows_Events_LMLogs -appliesTo "isWindows() && lmlogs.winevent.channels && lmaccess.id && lmaccess.key && lmaccount"
-                    If($LogsDatasource){
-                        Write-Host "[INFO]: Successfully added core module (Windows_Events_LMLogs) and updated appliesto logic"
+                    Write-Host "[INFO]: Setting up Windows Events DataSource"
+                    $LogsAPIRoleName = "lm-logs-ingest"
+                    $LogsAPIUser = Get-LMUser -Name "$LogsAPIUsername"
+                    $LogsAPIRole = Get-LMRole -Name $LogsAPIRoleName
+                    If(!$LogsAPIRole){
+                        Write-Host "[INFO]: Setting up LM Logs API Role: $LogsAPIRoleName"
+                        $LogsAPIRole = New-LMRole -Name $LogsAPIRoleName -ResourcePermission view -LogsPermission manage -Description "Auto provisioned to allow for windows events ingest via datasource"
+                        If($LogsAPIRole){
+                            Write-Host "[INFO]: Successfully setup API role: $LogsAPIRoleName"
+                        }
                     }
                     Else{
-                        Write-Host "[WARN]: Successfully added core module (Windows_Events_LMLogs) but was unable to modify the appliesTo criteria, please manually set the appliesTo criteria for the datasource to apply: 'isWindows() && lmlogs.winevent.channels && lmaccess.id && lmaccess.key && lmaccount'" -ForegroundColor Yellow
+                        Write-Host "[INFO]: LM Logs API Role ($LogsAPIRoleName) already exists in portal, skipping setup" -ForegroundColor Gray
                     }
-                }
-                Else{
-                    Write-Host "[INFO]: LM Logs core logicmodule ($($LogsDatasource.displayname)) already exists in portal, skipping setup" -ForegroundColor Gray
+    
+                    If(!$LogsAPIUser){
+                        Write-Host "[INFO]: Setting up LM Logs API user: $LogsAPIUsername"
+                        $LogsAPIUser = New-LMAPIUser -Username "$LogsAPIUsername" -note "Auto provisioned for use with Windows LM Logs Datasource" -RoleNames @($LogsAPIRoleName)
+                        If ($LogsAPIUser) {
+                            Write-Host "[INFO]: Successfully setup API user: $LogsAPIUsername"
+            
+                            Write-Host "[INFO]: Creating administrator API token for user: $LogsAPIUsername"
+                            $LMLogsAPIINfo = New-LMAPIToken -id $LogsAPIUser.id -Note "Auto provisioned for use with Windows LM Logs Datasource"
+                        }
+            
+                        #Import Datasource and apply properties to windows server group
+                        If ($LMLogsAPIINfo) {
+                            Write-Host "[INFO]: Successfully created API token for user: $LogsAPIUsername | $($LMLogsAPIINfo.accessId) | $($LMLogsAPIINfo.accessKey)"
+            
+                            $WindowsServerDeviceGroup =  Get-LMDeviceGroup -Name "Windows Servers" | Where-Object {$_.fullPath -like "Devices by Type*"}
+    
+    
+                            If ($WindowsServerDeviceGroup) {
+                                Write-Host "[INFO]: Adding API properties to Windows Server device group"
+                                $UpdatedWindowsServerDeviceGroup = Set-LMDeviceGroup -Id $WindowsServerDeviceGroup.Id -Properties @{"lmaccess.id" = $LMLogsAPIINfo.accessId; "lmaccess.key" = $LMLogsAPIINfo.accessKey; "lmaccount" = $PortalName; "lmlogs.winevent.channels" = $WindowsLMLogsEventChannels; "lmlogs.winevent.detailed_message" = "false" }
+                                If ($UpdatedWindowsServerDeviceGroup) {
+                                    Write-Host "[INFO]: Successfully updated Windows Server device group for LM Logs"
+                                }
+                            }
+    
+    
+                        }
+                    }
+                    Else{
+                        Write-Host "[INFO]: LM Logs API User ($LogsAPIUsername) already exists in portal, skipping setup" -ForegroundColor Gray
+                    }
+    
+                    #Import LM Logs Datasource
+                    $LogsDatasource = Get-LMDatasource -Name "Windows_Events_LMLogs"
+                    If(!$LogsDatasource){
+                        Import-LMExchangeModule -LMExchangeId "2cb0a988-487a-48a6-b332-62003ef3b3dc" #core module
+                        Start-Sleep -Seconds 5 #Added manual pause to ensure datasource is available after importing from the exchange
+                        $LogsDatasource = Set-LMDatasource -Name Windows_Events_LMLogs -appliesTo "isWindows() && lmlogs.winevent.channels && lmaccess.id && lmaccess.key && lmaccount"
+                        If($LogsDatasource){
+                            Write-Host "[INFO]: Successfully added core module (Windows_Events_LMLogs) and updated appliesto logic"
+                        }
+                        Else{
+                            Write-Host "[WARN]: Successfully added core module (Windows_Events_LMLogs) but was unable to modify the appliesTo criteria, please manually set the appliesTo criteria for the datasource to apply: 'isWindows() && lmlogs.winevent.channels && lmaccess.id && lmaccess.key && lmaccount'" -ForegroundColor Yellow
+                        }
+                    }
+                    Else{
+                        Write-Host "[INFO]: LM Logs core logicmodule ($($LogsDatasource.displayname)) already exists in portal, skipping setup" -ForegroundColor Gray
+                    }
                 }
             }
 
