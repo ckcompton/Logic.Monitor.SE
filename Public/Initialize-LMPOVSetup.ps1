@@ -147,7 +147,10 @@ Function Initialize-LMPOVSetup {
                 "Exchange Servers" = 'hasCategory("MSExchange")'
                 "IIS" = 'hasCategory("MicrosoftIIS")'
                 "Citrix XenApp" = 'hasCategory("CitrixBrokerActive") || hasCategory("CitrixMonitorServiceV2") || hasCategory("CitrixLicense") || hasCategory("CitrixEUEM")'
-
+                "Cloud IaaS Resources" = 'system.cloud.pricingCategory =~ "iaas"'
+                "Cloud PaaS Resources" = 'system.cloud.pricingCategory =~ "paas"'
+                "Cloud Non-Compute Resources" = 'system.cloud.pricingCategory =~ "non-compute"'
+                "Core Resources" = '!system.cloud.pricingCategory && !system.cloud.category && system.device.provider != "K8S"'
             }
             
             $GitubURI = "https://raw.githubusercontent.com/stevevillardi"

@@ -84,20 +84,6 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
         
-        #Default vCenter NetScan Creds/Props
-        $Filters.Add(
-            [PSCustomObject]@{
-                "attribute"="netscan.foundDNS"
-                "operation"="Equal"
-                "comment"="NetScan was able to discover the Virtual Machines DNS name (true or false)"
-                "value"="true"
-            })
-        $Filters.Add([PSCustomObject]@{
-                "attribute"="netscan.powerstate"
-                "operation"="Equal"
-                "comment"="Power state at the time that the netscan was run. Used for filtering powered off Virtual Machines from discovery."
-                "value"="poweredOn"
-            })
         $Filters.Add([PSCustomObject]@{
                 "attribute"="vcenter.datacenter"
                 "operation"="Equal"
@@ -108,13 +94,13 @@ Function Import-LMNetscanTemplate{
                 "attribute"="vcenter.cluster"
                 "operation"="Equal"
                 "comment"="vSphere Clusters whose resources you wish to discover/exclude. The default behavior is to discover/import all clusters for the targeted vCenter. One value per filter entry."
-                "value"="Cluster01, Cluster02"
+                "value"="Cluster01"
             })
         $Filters.Add([PSCustomObject]@{
                 "attribute"="vcenter.resourcepool"
                 "operation"="Equal"
                 "comment"="Resource pools, whose resources you wish to discover/exclude.The Default behavior discovers/imports all vCenter Resource Pools as Resource Groups and all VMs as Resources. One value per filter entry."
-                "value"="Prod, MissionCritical"
+                "value"="ResourcePool01"
             })
         $Filters.Add([PSCustomObject]@{
                 "attribute"="vcenter.folder"
@@ -129,10 +115,10 @@ Function Import-LMNetscanTemplate{
                 "value"=".*[Tt]est.*"
             })
         $Filters.Add([PSCustomObject]@{
-                "attribute"="vcenter.tags"
-                "operation"="NotEqual"
-                "comment"="Resources you want to discover or exclude based on tags of format category.tag. The Default behavior ignores the values of VM tags. One value per filter entry."
-                "value"="dev, test, nomonitoring"
+                "attribute"="vmware.vcenter.tag.<tag-category>"
+                "operation"="Contain"
+                "comment"="Resources you want to discover or exclude based on tags. The property name should include the category you are using for filtering. See support documetation for more details."
+                "value"="Sales"
             })
 
         New-LMEnhancedNetScan `
@@ -170,6 +156,7 @@ Function Import-LMNetscanTemplate{
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.org"="<Org Id>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.key"="<changeme>"})
+        $CustomCredentials.Add([PSCustomObject]@{"meraki.api.key.addToAllDevices"="true"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.snmp.community.pass"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.snmp.security"="<username>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.snmp.auth"="<SHA or MD5>"})
@@ -256,7 +243,7 @@ Function Import-LMNetscanTemplate{
         }
         
         
-        #Default Meraki NetScan Creds/Props
+        #Default Cisco SDWAN NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.user"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.pass"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.vmanagehost"="<changeme>"})
@@ -270,11 +257,21 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.statisticslookback"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.sites.csv"="<optional>"})
 
+        #Default Cisco SDWAN NetScan Creds/Props
+        $Filters.Add(
+            [PSCustomObject]@{
+                "attribute"="cisco.sdwan.serial.number"
+                "operation"="Equal"
+                "comment"="Device serial number."
+                "value"="1234567890"
+            })
+
         New-LMEnhancedNetScan `
             -CollectorId $CollectorId `
             -Name $Name `
             -NetScanGroupName $Group `
             -CustomCredentials $CustomCredentials `
+            -Filters $Filters `
             -Description $Description `
             -GroovyScript $Script.Replace("©","")
     }
@@ -300,7 +297,7 @@ Function Import-LMNetscanTemplate{
             Write-Host "[INFO]: Able to scrape latest Juniper Mist Netscan groovy code from support site, using as latest version." -ForegroundColor Green
         }
         
-        #Default Meraki NetScan Creds/Props
+        #Default Juniper Mist NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"mmist.api.org"="<Org Id>"})
         $CustomCredentials.Add([PSCustomObject]@{"mist.api.key"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"mist.api.org.folder"="<optional>"})
@@ -360,7 +357,7 @@ Function Import-LMNetscanTemplate{
             Write-Host "[INFO]: Able to scrape latest Aruba Netscan groovy code from support site, using as latest version." -ForegroundColor Green
         }
         
-        #Default Meraki NetScan Creds/Props
+        #Default Aruba Edge Connect NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"aruba.orchestrator.api.key"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"aruba.orchestrator.host"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"lmaccess.id"="LM API access Id"})
@@ -369,11 +366,41 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"hostname.source"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"skip.device.dedupe"="<optional>"})
 
+        $Filters.Add(
+            [PSCustomObject]@{
+                "attribute"="aruba.appliance.serial.number"
+                "operation"="Equal"
+                "comment"="Appliance serial number."
+                "value"="1234567890"
+            })
+        $Filters.Add(
+            [PSCustomObject]@{
+                "attribute"="aruba.appliance.site"
+                "operation"="Equal"
+                "comment"="Appliance site."
+                "value"="Site Name"
+            })
+        $Filters.Add(
+            [PSCustomObject]@{
+                "attribute"="aruba.appliance.device.name"
+                "operation"="Equal"
+                "comment"="Appliance device name."
+                "value"="Device Name"
+            })
+        $Filters.Add(
+            [PSCustomObject]@{
+                "attribute"="aruba.appliance.tags"
+                "operation"="RegexMatch"
+                "comment"="Appliance tags."
+                "value"="tag1|tag2|tag3"
+            })
+
         New-LMEnhancedNetScan `
             -CollectorId $CollectorId `
             -Name $Name `
             -NetScanGroupName $Group `
             -CustomCredentials $CustomCredentials `
+            -Filters $Filters `
             -Description $Description `
             -GroovyScript $Script.Replace("©","")
     }
@@ -399,7 +426,7 @@ Function Import-LMNetscanTemplate{
         }
         
         
-        #Default Meraki NetScan Creds/Props
+        #Default Prisma NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.id"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.key"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.tsg.id"="<changeme>"})
@@ -443,7 +470,7 @@ Function Import-LMNetscanTemplate{
         
         
         
-        #Default Meraki NetScan Creds/Props
+        #Default Cisco Catalyst Center NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.user"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.pass"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.host"="<changeme>"})
@@ -457,6 +484,7 @@ Function Import-LMNetscanTemplate{
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.service.url"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.sites"="<optional>"})
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.devicefamilies"="<optional>"})
+        $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.ignore.proxy"="<optional>"})
 
         New-LMEnhancedNetScan `
             -CollectorId $CollectorId `

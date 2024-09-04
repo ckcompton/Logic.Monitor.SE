@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Imports a Meraki Cloud portal into LM.
+Imports a Meraki Cloud portal into LM (Legacy).
 
 .DESCRIPTION
 Imports a Meraki Cloud portal into LM along with creating any required groups and device properties.
@@ -77,7 +77,9 @@ Function Import-LMMerakiCloud {
     )
 
     #Check if we are logged in and have valid api creds
-    Begin {}
+    Begin {
+        Write-Host "Import-LMMerakiCloud is deprecated and will be removed in a future release, please use Import-LMNetscanTemplate instead." -ForegroundColor Red
+    }
     Process {
         If ($(Get-LMAccountStatus).Valid) {
             #List out org devices
