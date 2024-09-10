@@ -312,7 +312,7 @@ Function Import-LMMultiCredentialConfig {
                             }
                             Catch{
                                 #Oops
-                                Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
+                                Write-Error "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" 
                             }
                         }
                         Else{
@@ -329,7 +329,7 @@ Function Import-LMMultiCredentialConfig {
                             }
                             Catch{
                                 #Oops
-                                Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
+                                Write-Error "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" 
                             }
                         }
                         Else{
@@ -344,7 +344,7 @@ Function Import-LMMultiCredentialConfig {
                         Write-Host "[INFO]: Successfully set SNMP credentials property on import group."
                     }
                     Catch{
-                        Write-Host "[ERROR]: Unable to set SNMP credentials property on import group: $_." -ForegroundColor Red
+                        Write-Error "[ERROR]: Unable to set SNMP credentials property on import group: $_." 
                         Return
                     }
                 }
@@ -354,7 +354,7 @@ Function Import-LMMultiCredentialConfig {
                         Write-Host "[INFO]: Successfully set SSH credentials property on import group."
                     }
                     Catch {
-                        Write-Host "[ERROR]: Unable to set SSH credentials property on import group: $_." -ForegroundColor Red
+                        Write-Error "[ERROR]: Unable to set SSH credentials property on import group: $_." 
                         Return
                     }
                 }
@@ -395,7 +395,7 @@ Function Import-LMMultiCredentialConfig {
                     Write-Host "[INFO]: Successfully set API credentials on Minimal Monitoring group ($($LMMultiCredAPIINfo.accessId))."
                 }
                 Else{
-                    Write-Host "[ERROR]: Unable to find Minimal Monitoring group, please ensure that it exists and try again." -ForegroundColor Red
+                    Write-Error "[ERROR]: Unable to find Minimal Monitoring group, please ensure that it exists and try again." 
                     Return
                 }
 

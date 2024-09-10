@@ -213,12 +213,12 @@ Function Initialize-LMPOVSetup {
                         }
                         Catch{
                             #Oops
-                            Write-Host "[ERROR]: Unable to import SI template from source: $_" -ForegroundColor Red
+                            Write-Error "[ERROR]: Unable to import SI template from source: $_" 
                         }
                     }
                     Else{
                         #Oops
-                        Write-Host "[ERROR]: Failed to create service insight resource (LogicMonitor: Collector Health), review error message and try again." -ForegroundColor Red
+                        Write-Error "[ERROR]: Failed to create service insight resource (LogicMonitor: Collector Health), review error message and try again." 
                     }
                 }
                 Else{
@@ -394,7 +394,7 @@ Function Initialize-LMPOVSetup {
                             }
                             Catch{
                                 #Oops
-                                Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
+                                Write-Error "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" 
                             }
                         }
                         Else{
@@ -510,7 +510,7 @@ Function Initialize-LMPOVSetup {
                                 }
                                 Catch{
                                     #Oops
-                                    Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
+                                    Write-Error "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" 
                                 }
                             }
                             Else{
@@ -543,7 +543,7 @@ Function Initialize-LMPOVSetup {
                     }
                     Catch{
                         #Oops
-                        Write-Host "[ERROR]: Unable to import Alert Analysis dashboard from source: $_" -ForegroundColor Red
+                        Write-Error "[ERROR]: Unable to import Alert Analysis dashboard from source: $_" 
                     }
                 }
                 Else{
@@ -564,7 +564,7 @@ Function Initialize-LMPOVSetup {
                     Write-Host "[INFO]: Successfully updated new user welcome email template"
                 }
                 Catch{
-                    Write-Host "[ERROR]: Unable to modify new user welcome email template: $_" -ForegroundColor Red
+                    Write-Error "[ERROR]: Unable to modify new user welcome email template: $_" 
                 }
 
                 #Set SSL_Cert DS to only alert on non self signed certs
@@ -579,17 +579,17 @@ Function Initialize-LMPOVSetup {
                             Write-Host "[INFO]: Successfully updated default alert thresholds on LogicModule ($SSLDatasourceName)"
                         }
                         Catch{
-                            Write-Host "[ERROR]: Unable to modify default alert thresholds on LogicModule ($SSLDatasourceName): $_" -ForegroundColor Red
+                            Write-Error "[ERROR]: Unable to modify default alert thresholds on LogicModule ($SSLDatasourceName): $_" 
                         }
                     }
                     Else{
                         #Unable to find required datapoints for modification
-                        Write-Host "[ERROR]: Unable to modify default alert thresholds on LogicModule ($SSLDatasourceName), expected datapoints not found" -ForegroundColor Red
+                        Write-Error "[ERROR]: Unable to modify default alert thresholds on LogicModule ($SSLDatasourceName), expected datapoints not found" 
                     }
                 }
                 Else{
                     #Unable to find SSL_Certificates DS
-                    Write-Host "[ERROR]: Unable to locate LogicModule ($SSLDatasourceName), skipping alert threshold modification" -ForegroundColor Red
+                    Write-Error "[ERROR]: Unable to locate LogicModule ($SSLDatasourceName), skipping alert threshold modification" 
                 }
 
                 #Import default DSes
@@ -641,7 +641,7 @@ Function Initialize-LMPOVSetup {
                         }
                         Catch{
                             #Oops
-                            Write-Host "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" -ForegroundColor Red
+                            Write-Error "[ERROR]: Unable to import $ModuleName LogicModule from source: $_" 
                         }
                     }
                     Else{
@@ -722,7 +722,7 @@ Function Initialize-LMPOVSetup {
                     }
                     Catch{
                         #Oops
-                        Write-Host "[ERROR]: Unable to import $($Dashboard.name) template from source: $_" -ForegroundColor Red
+                        Write-Error "[ERROR]: Unable to import $($Dashboard.name) template from source: $_" 
                     }
                 }
 

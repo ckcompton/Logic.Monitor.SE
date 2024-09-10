@@ -30,19 +30,19 @@ Function Update-LogicMonitorSEModule {
         
         # Uninstall the old version
         If($CheckOnly){
-            Write-LMHost "You are currently using an outdated version ($InstalledVersion) of $Module, please consider upgrading to the latest version ($OnlineVersion) as soon as possible." -ForegroundColor Yellow
+            Write-Host "You are currently using an outdated version ($InstalledVersion) of $Module, please consider upgrading to the latest version ($OnlineVersion) as soon as possible." -ForegroundColor Yellow
         }
         ElseIf ($UninstallFirst -eq $true) {
-            Write-LMHost "Uninstalling prior Module $Module version $InstalledVersion"
+            Write-Host "Uninstalling prior Module $Module version $InstalledVersion"
             Uninstall-Module -Name $Module -Force -Verbose:$False
         }
         Else{
-            Write-LMHost "Installing newer Module $Module version $OnlineVersion"
+            Write-Host "Installing newer Module $Module version $OnlineVersion"
             Install-Module -Name $Module -Force -AllowClobber -Verbose:$False
         }
         
     } 
     Else {
-        Write-LMHost "Module $Module version $InstalledVersion is the latest version."
+        Write-Host "Module $Module version $InstalledVersion is the latest version."
     }
 }

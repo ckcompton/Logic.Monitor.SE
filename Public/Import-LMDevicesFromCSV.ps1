@@ -98,13 +98,14 @@ Function Import-LMDevicesFromCSV {
                         If($null -ne $Device."$Property"){$Properties.Add($Property,$Device."$Property")}
                     }
                     Try{
-                        $GroupId = (Get-LMDeviceGroup | Where-Object {$_.fullpath -eq $($Device.hostgroup)}).Id
+                        $CurrentGroup = $Device.hostgroup.Replace("\","/") #Replace backslashes with forward slashes for LM API
+                        $GroupId = (Get-LMDeviceGroup | Where-Object {$_.fullpath -eq $CurrentGroup}).Id
                         If(!$GroupId){
                             $GroupPaths = $Device.hostgroup.Split("/")
                             $j = 1
                             $GroupPathsCount = ($GroupPaths | Measure-Object).Count
                             Foreach($Path in $GroupPaths){
-                                Write-Progress -Activity "Processing Group Creation: $($Device.hostgroup)" -Status "$([Math]::Floor($($j/$GroupPathsCount*100)))% Completed" -PercentComplete $($j/$GroupPathsCount*100) -ParentId 0 -Id 1
+                                Write-Progress -Activity "Processing Group Creation: $CurrentGroup" -Status "$([Math]::Floor($($j/$GroupPathsCount*100)))% Completed" -PercentComplete $($j/$GroupPathsCount*100) -ParentId 0 -Id 1
                                 $GroupId = New-LMDeviceGroupFromPath -Path $Path -PreviousGroupId $GroupId
                                 $j++
                             }
