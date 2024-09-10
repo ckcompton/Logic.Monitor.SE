@@ -152,7 +152,6 @@ Function Import-LMNetscanTemplate{
             Write-Host "[INFO]: Able to scrape latest Meraki Netscan groovy code from support site, using as latest version." -ForegroundColor Green
         }
         
-        
         #Default Meraki NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.org"="<Org Id>"})
         $CustomCredentials.Add([PSCustomObject]@{"meraki.api.key"="<changeme>"})
@@ -241,7 +240,6 @@ Function Import-LMNetscanTemplate{
         Else{
             Write-Host "[INFO]: Able to scrape latest Cisco SDWAN Netscan groovy code from support site, using as latest version." -ForegroundColor Green
         }
-        
         
         #Default Cisco SDWAN NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"cisco.sdwan.user"="<changeme>"})
@@ -425,7 +423,6 @@ Function Import-LMNetscanTemplate{
             Write-Host "[INFO]: Able to scrape latest Palo Alto Prisma Netscan groovy code from support site, using as latest version." -ForegroundColor Green
         }
         
-        
         #Default Prisma NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.id"="<changeme>"})
         $CustomCredentials.Add([PSCustomObject]@{"paloalto.sase.client.key"="<changeme>"})
@@ -467,8 +464,6 @@ Function Import-LMNetscanTemplate{
         Else{
             Write-Host "[INFO]: Able to scrape latest Cisco Catalyst Wireless AP Netscan groovy code from support site, using as latest version." -ForegroundColor Green
         }
-        
-        
         
         #Default Cisco Catalyst Center NetScan Creds/Props
         $CustomCredentials.Add([PSCustomObject]@{"cisco.catalyst.center.user"="<changeme>"})
