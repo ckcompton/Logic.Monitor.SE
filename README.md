@@ -5,28 +5,25 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## Version 1.7.2
+## Version 1.7.3
 ###### **New Cmdlets**:
-- **Export-LMCloudInventory**:
-  - This cmdlet exports cloud inventory data from LogicMonitor to a CSV file. It supports exporting data for AWS, Azure, and GCP.
+- **Add-LMDeviceToDeviceGroup**:
+  - This cmdlet adds a device to a device group, maintaining the device's existing group membership.
   ```
-  #Exports cloud inventory data for AWS.
-  Export-LMCloudInventory -CloudType AWS -OutputFilePath "C:\Path\To\Output"
+  #Adds a device to a device group.
+  Add-LMDeviceToDeviceGroup -GroupName "Device Group Name" -Id "Device ID" -PassThru
+  ```
 
-  #Exports cloud inventory data for Azure.
-  Export-LMCloudInventory -CloudType Azure -OutputFilePath "C:\Path\To\Output"
+- **Remove-LMDeviceFromDeviceGroup**:
+  - This cmdlet removes a device from a device group, maintaining the device's existing group membership.
+  ```
+  #Removes a device from a device group.
+  Remove-LMDeviceFromDeviceGroup -GroupName "Device Group Name" -Id "Device ID" -PassThru
   ```
 ###### **Updated Cmdlets**:
-- **Import-LMNetScanTemplate**: 
-  - Updated templates to include the latest set of properties and filters available in LogicMonitor.
-- **Import-LMDevicesFromCSV**: 
-  - Added logic to correct hostpath if using an backslash instead of a forward slash when specifying the device group path.
 - **Import-LMDeviceGroupsFromCSV**:
-  - Added logic to correct fullpath if using an backslash instead of a forward slash when specifying the device group path.
-- **Initialize-LMPOVSetup**: 
-  - Added new dynamic groups for grouping devices by cloud pricing categories.
-  - Added switch *-WindowsLogSource* to use Windows Event LogSources instead of the legacy Windows Event Logs datasource. The default behavior will be to use the legacy datasource for backwards compatibility.
-- **Import-LMMerakiCloud**:
-  - Deprecated cmdlet. Meraki is now supported via the *Import-LMNetScanTemplate* cmdlet with the *NetscanType* parameter set to *Meraki*.
+  - Fixed an issue where the function would not run due to an null value being passed to the function, this issue is only present in version 1.7.2.
+- **Initialize-LMPOVSetup**:
+  - Fixed an issue that was preventing using the new LogSource deployment option when specifying the switch *-SetupWindowsLogs*.
 
 [Previous Release Notes](RELEASENOTES.md)

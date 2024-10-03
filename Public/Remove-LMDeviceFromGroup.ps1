@@ -54,7 +54,13 @@ Function Remove-LMDeviceFromGroup{
             #Get the device group id
             If($GroupName){
                 $GroupId = (Get-LMDeviceGroup -Name $GroupName).id
+                
+                If($($GroupId | Measure-Object).Count -gt 1){
+                    Write-Error "Multiple device groups found for the specified name value: $GroupName. Please ensure value is unique and try again"
+                    Return
+                }
             }
+
             
             #Split the hostgroupids into an array and remove the group id
             $HostGroupIds = ($Device.HostGroupIds -split "," | Where-Object {$_ -ne $GroupId}) -join ","

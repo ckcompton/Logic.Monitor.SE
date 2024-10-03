@@ -54,8 +54,14 @@ Function Add-LMDeviceToGroup{
             #Get the device group id
             If($GroupName){
                 $GroupId = (Get-LMDeviceGroup -Name $GroupName).id
+                
+                If($($GroupId | Measure-Object).Count -gt 1){
+                    Write-Error "Multiple device groups found for the specified name value: $GroupName. Please ensure value is unique and try again"
+                    Return
+                }
             }
             
+
             #Join the device group ids
             $HostGroupIds = $Device.HostGroupIds + "," + $GroupId
             #Add the device to the group
