@@ -90,7 +90,7 @@ Function Import-LMDeviceGroupsFromCSV {
                         $Properties.Add($Property,$DeviceGroup."$Property")
                     }
                     Try{
-                        $CurrentGroup = $Device.fullpath.Replace("\","/") #Replace backslashes with forward slashes for LM API
+                        $CurrentGroup = $DeviceGroup.fullpath.Replace("\","/") #Replace backslashes with forward slashes for LM API
                         $GroupId = (Get-LMDeviceGroup | Where-Object {$_.fullpath -eq $CurrentGroup}).Id
                         If(!$GroupId){
                             $GroupPaths = $DeviceGroup.fullpath.Split("/")

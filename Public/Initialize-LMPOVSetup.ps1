@@ -95,6 +95,7 @@ Function Initialize-LMPOVSetup {
         [Switch]$SetupWindowsLMLogs,
 
         [Parameter(ParameterSetName = 'Individual')]
+        [Parameter(ParameterSetName = 'All')]
         [Switch]$WindowsLogSource,
 
         [Parameter(ParameterSetName = 'Individual')]
