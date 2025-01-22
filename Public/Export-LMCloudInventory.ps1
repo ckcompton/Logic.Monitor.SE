@@ -32,7 +32,10 @@ Function Export-LMCloudInventory {
         [string]$CloudType,
 
         [Parameter(Mandatory=$true)]
-        [string]$FilePath
+        [string]$FilePath,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$PassThru
     )
 
     Switch ($CloudType) {
@@ -98,6 +101,11 @@ Function Export-LMCloudInventory {
         }
         $results.Add($accountResults) | Out-Null
     }
+
+    If($PassThru){
+        Return $results
+    }
+
     #Exporting the results to CSV for each account in a separate file
     $results | ForEach-Object {$_ | Export-Csv $FilePath"/$($_.AccountName[0]).csv"; Write-Host "Exported $($_.AccountName[0]) to $FilePath/$($_.AccountName[0]).csv"}
 }
