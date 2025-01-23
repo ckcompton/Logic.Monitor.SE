@@ -39,7 +39,7 @@ Function Initialize-LMSITemplateSetup {
             $ServiceInsightProps = @{
                 device = @(
                     @{
-                        deviceGroupFullPath = "*";
+                        deviceGroupFullPath = "Devices By Type/Collectors";
                         deviceDisplayName   = "*";
                         deviceProperties    = @()
                     }
