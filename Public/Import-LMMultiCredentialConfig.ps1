@@ -39,7 +39,6 @@ Import-LMMultiCredentialConfig -GenerateExampleCSV
 Generates example CSV files for SSH and SNMP credentials.
 
 #>
-
 Function Import-LMMultiCredentialConfig {
     [CmdletBinding()]
     param (
@@ -150,17 +149,17 @@ Function Import-LMMultiCredentialConfig {
                         $SNMPCredentialsObject = New-Object System.Collections.ArrayList
     
                         Foreach($SNMPCred in $SNMPCsvInfo){
-                            If($SNMPCred.version -eq "v2"){
+                            If($SNMPCred.version -eq "v2c" -or $SNMPCred.version -eq "v2"){
                                 $SNMPCredentialsObject.Add([PSCustomObject]@{
                                     name = $SNMPCred.name
-                                    version = $SNMPCred.version
+                                    version = "v2c"
                                     community = $SNMPCred.community
                                 }) | Out-Null
                             }
                             Else{
                                 $SNMPCredentialsObject.Add([PSCustomObject]@{
                                     name = $SNMPCred.name
-                                    version = $SNMPCred.version
+                                    version = "v3"
                                     v3 = [PSCustomObject]@{
                                         security = $SNMPCred.security
                                         authMethod = $SNMPCred.authMethod
