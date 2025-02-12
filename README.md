@@ -5,25 +5,15 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## Version 1.7.3
-###### **New Cmdlets**:
-- **Add-LMDeviceToDeviceGroup**:
-  - This cmdlet adds a device to a device group, maintaining the device's existing group membership.
-  ```
-  #Adds a device to a device group.
-  Add-LMDeviceToDeviceGroup -GroupName "Device Group Name" -Id "Device ID" -PassThru
-  ```
-
-- **Remove-LMDeviceFromDeviceGroup**:
-  - This cmdlet removes a device from a device group, maintaining the device's existing group membership.
-  ```
-  #Removes a device from a device group.
-  Remove-LMDeviceFromDeviceGroup -GroupName "Device Group Name" -Id "Device ID" -PassThru
-  ```
+## Version 1.7.4
 ###### **Updated Cmdlets**:
-- **Import-LMDeviceGroupsFromCSV**:
-  - Fixed an issue where the function would not run due to an null value being passed to the function, this issue is only present in version 1.7.2.
-- **Initialize-LMPOVSetup**:
-  - Fixed an issue that was preventing using the new LogSource deployment option when specifying the switch *-SetupWindowsLogs*.
+- **Export-LMCloudInventory**:
+  - Added -PassThru parameter to allow for the output to be returned to the caller.
+- **Import-LMMultiCredentialConfig**:
+  - Updated SNMP v2/v3 credential property values to properly reflect the expected format.
+
+###### **New Cmdlets**:
+- **Initialize-LMSITemplateSetup**:
+  - Initial cmdlet to help support the setup and configuration of SI templates by setting up a set of standard mapped normalized properties.
 
 [Previous Release Notes](RELEASENOTES.md)
