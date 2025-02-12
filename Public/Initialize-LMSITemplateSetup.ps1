@@ -32,9 +32,43 @@ Function Initialize-LMSITemplateSetup {
     #Check if we are logged in and have valid api creds
     Begin {}
     Process {
+        #Check if we are logged in and have valid api creds
         If ($(Get-LMAccountStatus).Valid) {
-            # Base URI for module templates
-            $GitubURI = "https://raw.githubusercontent.com/Sims737477"
+            # Module template code
+            $NormalizingPropSource = @{
+                searchKeywords = ""
+                name = "NormalisedProps"
+                description = ""
+                appliesTo = 'system.displayname == "LogicMonitor SI Property Normalizer"'
+                type = 5
+                technicalNotes = ""
+                params = @(
+                    @{
+                        name = "scriptgroovy"
+                        comment = ""
+                        value = @"
+import com.santaba.agent.groovyapi.expect.Expect;
+import com.santaba.agent.groovyapi.snmp.Snmp;
+import com.santaba.agent.groovyapi.http.*;
+import com.santaba.agent.groovyapi.jmx.*;
+import org.xbill.DNS.*;
+
+println 'auto.location.region=EMEA'
+println 'auto.location.country=United Kingdom'
+println 'auto.location.state=London'
+println 'auto.location.city=London'
+println 'auto.location.site=Chadwick Court'
+println 'auto.location.type=Office'
+"@
+                    },
+                    @{
+                        name = "scripttype"
+                        type = "string"
+                        comment = "embed"
+                        value = "embed"
+                    })
+                group = ""
+            } | ConvertTo-Json -Depth 3
 
             $ServiceInsightProps = @{
                 device = @(
@@ -111,7 +145,6 @@ Function Initialize-LMSITemplateSetup {
             If (!$NormalizingPropSource) {
                 #Upload PropertyNormalizer PropertySource. 
                 Try {
-                    $NormalizingPropSource = (Invoke-WebRequest -Uri "$GitubURI/LM_templates/main/NormalisedProps.json" -UseBasicParsing).Content
                     Import-LMLogicModule -File $NormalizingPropSource -Type propertyrules -ErrorAction Stop
                 }
                 Catch {
