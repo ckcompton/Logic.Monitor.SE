@@ -5,7 +5,7 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## Version 1.7.5
+## Version 1.7.6
 
 ###### **New Cmdlets**:
 - **Find-LMLogAnomalyAlerts**:
