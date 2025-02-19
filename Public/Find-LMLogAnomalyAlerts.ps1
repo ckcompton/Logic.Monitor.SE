@@ -75,13 +75,25 @@ Function Find-LMLogAnomalyAlerts {
     Write-Information "Starting log anomaly alert matching process..."
     Write-Information "Date Range: $StartDate to $EndDate"
 
-    # Define negative sentiment words commonly found in logs
-    $negativeTerms = @(
-        'error', 'fail', 'failed', 'failure', 'critical', 'severe', 'exception',
-        'timeout', 'denied', 'rejected', 'invalid', 'fatal', 'crash', 'down',
-        'outage', 'incident', 'issue', 'problem', 'warning', 'alarm', 'alert',
-        'violation', 'exceeded', 'unavailable', 'unreachable', 'broken', 'corrupt'
-    )
+    # Define sentiment terms and weights
+    $sentimentTerms = @{
+        Critical = @{
+            Weight = -3
+            Terms = @('fatal', 'crash', 'outage', 'corrupt', 'unreachable')
+        }
+        High = @{
+            Weight = -2
+            Terms = @('error', 'exception', 'failure', 'critical', 'severe')
+        }
+        Medium = @{
+            Weight = -1
+            Terms = @('warning', 'timeout', 'denied', 'rejected')
+        }
+        Positive = @{
+            Weight = 1
+            Terms = @('resolved', 'recovered', 'restored', 'fixed')
+        }
+    }
 
     # Function to calculate sentiment score
     function Get-LogSentiment {
@@ -91,29 +103,78 @@ Function Find-LMLogAnomalyAlerts {
         $score = 0
         $messageLower = $message.ToLower()
         
-        foreach ($term in $negativeTerms) {
-            if ($messageLower -match $term) {
-                $score -= 1
+        foreach ($severity in $sentimentTerms.Keys) {
+            foreach ($term in $sentimentTerms[$severity].Terms) {
+                if ($messageLower -match $term) {
+                    $score += $sentimentTerms[$severity].Weight
+                }
             }
         }
         return $score
     }
 
     If($(Get-LMAccountStatus).Valid){
-        $Portal = $(Get-LMAccountStatus).Portal
-        Write-Information "Account validation successful. Retrieving alerts and anomalies..."
-        
-        $Alerts = Get-LMAlert -StartDate $StartDate -EndDate $EndDate -ClearedAlerts $true
-        Write-Information "Retrieved $($Alerts.Count) alerts"
-        
-        $Anomalies = Get-LMLogMessage -Query '_anomaly.type="never_before_seen"' -StartDate $(Get-Date).AddDays(-3) -EndDate $(Get-Date) -Async -MaxPages $MaxPages -BatchSize $BatchSize
-        Write-Information "Retrieved $($Anomalies.Count) anomalies"
+        try {
+            $Portal = $(Get-LMAccountStatus).Portal
+            Write-Information "Account validation successful. Starting data collection..."
 
-        If($Anomalies -and $Alerts){
-            Write-Information "Starting matching process..."
-            $matchedEvents = @{}  # Changed to hashtable for grouping
-            $processedCount = 0
+            # 1. Collect all alerts
+            Write-Information "Collecting alerts from $StartDate to $EndDate..."
+            $AllAlerts = @()
+            $currentStartDate = $StartDate
+            $maxAlertSize = 10000
             
+            do {
+                $alertBatch = Get-LMAlert -StartDate $currentStartDate -EndDate $EndDate -ClearedAlerts $true -Sort "startEpoch"
+                if ($alertBatch) {
+                    $AllAlerts += $alertBatch
+                    if ($alertBatch.Count -eq $maxAlertSize) {
+                        $lastAlert = $alertBatch[-1]
+                        $currentStartDate = [DateTimeOffset]::FromUnixTimeSeconds($lastAlert.startEpoch).DateTime.AddSeconds(1)
+                        Write-Information "Retrieved $($AllAlerts.Count) alerts, continuing from $currentStartDate..."
+                    }
+                }
+            } while ($alertBatch -and $alertBatch.Count -eq $maxAlertSize -and $currentStartDate -lt $EndDate)
+
+            Write-Information "Retrieved total of $($AllAlerts.Count) alerts"
+
+            # 2. Collect all anomalous logs
+            Write-Information "Collecting log anomalies..."
+            $Anomalies = Get-LMLogMessage -Query '_anomaly.type="never_before_seen"' -StartDate $StartDate -EndDate $EndDate -Async -MaxPages $MaxPages -BatchSize $BatchSize
+            Write-Information "Retrieved $($Anomalies.Count) anomalies"
+
+            if (-not $AllAlerts -or -not $Anomalies) {
+                Write-Warning "No data found for analysis"
+                return
+            }
+
+            # 3. Group alerts by resource
+            Write-Information "Organizing data by resource..."
+            $alertsByResource = @{}
+            foreach ($alert in $AllAlerts) {
+                $resourceId = $alert.monitorObjectId
+                if (-not $alertsByResource.ContainsKey($resourceId)) {
+                    $alertsByResource[$resourceId] = @()
+                }
+                $alertsByResource[$resourceId] += $alert
+            }
+
+            # 4. Group logs by resource
+            $logsByResource = @{}
+            foreach ($log in $Anomalies) {
+                $resourceId = $log._resource.id
+                if (-not $logsByResource.ContainsKey($resourceId)) {
+                    $logsByResource[$resourceId] = @()
+                }
+                $logsByResource[$resourceId] += $log
+            }
+
+            # 5. Match logs to alerts by resource and time window
+            $matchedEvents = @{}
+            $processedCount = 0
+
+            Write-Information "Starting matching process..."
+
             foreach ($log in $Anomalies) {
                 $processedCount++
                 if ($processedCount % 100 -eq 0) {
@@ -125,7 +186,8 @@ Function Find-LMLogAnomalyAlerts {
                 
                 Write-Debug "Processing log ID: $($log.id) for resource $logResourceId at time $logTime"
                 
-                $matchingAlerts = $Alerts | Where-Object {
+                # Find matching alerts for this log
+                $matchingAlerts = $AllAlerts | Where-Object {
                     $alertResourceId = $_.monitorObjectId
                     $alertStartTime = [DateTimeOffset]::FromUnixTimeSeconds($_.startEpoch).DateTime
                     
@@ -170,7 +232,9 @@ Function Find-LMLogAnomalyAlerts {
                     }
                 }
             }
-            
+
+            Write-Information "Matching process complete. Found $($matchedEvents.Count) unique alerts with associated logs."
+
             # Convert to array and sort by importance
             $sortedResults = $matchedEvents.Values | ForEach-Object {
                 [PSCustomObject]@{
@@ -196,18 +260,12 @@ Function Find-LMLogAnomalyAlerts {
                                     @{Expression = "TotalSentimentScore"; Descending = $true},
                                     @{Expression = "Severity"; Descending = $true}
 
-            Write-Information "Matching process complete. Found $($sortedResults.Count) unique alerts with associated logs."
-            if ($sortedResults.Count -gt 0) {
-                Write-Information "Returning matched events..."
-                return $sortedResults
-            } else {
-                Write-Information "No matching events found within the specified time window."
-                return $null
-            }
+            Write-Information "Analysis complete. Found $($sortedResults.Count) alerts with associated anomalies."
+            return $sortedResults
         }
-        Else {
-            Write-Information "No anomalies or alerts found for the given date range."
-            Return
+        catch {
+            Write-Error "An error occurred: $_"
+            return
         }
     }
     Else {
