@@ -5,6 +5,10 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
+## Version 1.7.7
+- **Find-LMLogAnomalyAlerts**:
+  - Update anomaly detection logic to use a more recent and accurate model for sentiment analysis and log anomaly detection.
+
 ## Version 1.7.6
 
 ###### **New Cmdlets**:
