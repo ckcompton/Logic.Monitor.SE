@@ -1,166 +1,176 @@
 <#
 .SYNOPSIS
-    This function starts a session synchronization server for Logic Monitor.
-
+    Starts a session synchronization server for Logic Monitor.
 .DESCRIPTION
-    The Start-LMSessionSyncServer function starts a Pode server that is used to synchronize sessions for Logic Monitor. 
-    It uses a secret vault to store session details. If the vault does not exist, it creates one. 
-    The function also provides options to enable request logging and error logging.
-
+    The Start-LMSessionSyncServer function starts a Pode server that synchronizes sessions for Logic Monitor.
+    It manages a secret vault for session storage and provides logging options.
 .PARAMETER EnableRequestLogging
-    A switch to control whether request logging is enabled.
-
+    Enables request logging when specified.
 .PARAMETER EnableErrorLogging
-    A switch to control whether error logging is enabled.
-
+    Enables error logging when specified.
 .EXAMPLE
     Start-LMSessionSyncServer -EnableRequestLogging -EnableErrorLogging
-
-    This command starts the session synchronization server with request logging and error logging enabled.
-
-.INPUTS
-    None. You cannot pipe objects to Start-LMSessionSyncServer.
-
-.OUTPUTS
-    The function does not return any output. It writes messages to the host to indicate the status of the server and the secret vault.
-
-.NOTES
-    The function throws an error if it fails to unlock the secret vault with the provided credentials.
 #>
 Function Start-LMSessionSyncServer {
+    [CmdletBinding()]
     Param(
         [Switch]$EnableRequestLogging,
         [Switch]$EnableErrorLogging
     )
+    
     Begin {
-        #Ensure we have a vault to use for storing session details
-        $VaultName = "Logic.Monitor"
-
-        Try {
-            Get-SecretVault -Name $VaultName -ErrorAction Stop | Out-Null
-            Write-Host "Existing vault $VaultName already exists, skipping creation" -ForegroundColor Yellow
-        }
-        Catch {
-            If($_.Exception.Message -like "*Vault $VaultName does not exist in registry*") {
-                Write-Host "Credential vault for cached accounts does not currently exist, creating credential vault: $VaultName" -ForegroundColor Yellow
-                Register-SecretVault -Name $VaultName -ModuleName Microsoft.PowerShell.SecretStore
-                Get-SecretStoreConfiguration | Out-Null
-            }
-        }
-
+        Initialize-SecretVault -VaultName $Config.VaultName
     }
-    Process{
-        #Assuming we got here we can start our session server
+    
+    Process {
         Start-PodeServer {
-            #Ensure we have a vault to use for storing session details
-            $VaultName = "Logic.Monitor"
-            $VaultKeyPrefix = "LMSessionSync"
-
-            #Capture creds so we can use them 
-            Try{
-                Unlock-SecretVault -Name $VaultName -Password $(Read-Host "Enter vault credentials" -AsSecureString -OutVariable VaultCred) -ErrorAction Stop
-                Set-PodeState -Name 'VaultUnlock' -Value $VaultCred | Out-Null
-            }
-            Catch {
-                Write-Error "Unable to start SessionSync server without valid vault unlock credentials: $_"
-                Return
+            # Initialize vault and server state
+            if (-not (Initialize-VaultAccess -VaultName $Config.VaultName)) {
+                return
             }
 
-            #Rotate APIKey in vault
-            $ApiKey = (1..64| ForEach-Object {[byte](Get-Random -Max 256)} | ForEach-Object ToString X2) -join ''
-            Set-Secret -Name $VaultKeyPrefix-RESTAPIKey -Vault $VaultName -Secret $ApiKey -Metadata @{Modified="$(Get-Date)";Portal="SessionSync-ApiKey"}
+            $apiKey = Initialize-ApiKey -VaultName $Config.VaultName -VaultKeyPrefix $Config.VaultKeyPrefix
 
-            #Sete our web server state
-            Set-PodeState -Name 'VaultName' -Value $VaultName | Out-Null
-            Set-PodeState -Name 'VaultKeyPrefix' -Value $VaultKeyPrefix | Out-Null
-            Set-PodeState -Name 'VaultApiKey' -Value $ApiKey | Out-Null
+            # Set server state
+            @('VaultName', 'VaultKeyPrefix', 'VaultApiKey') | ForEach-Object {
+                Set-PodeState -Name $_ -Value $(
+                    switch ($_) {
+                        'VaultName' { $Config.VaultName }
+                        'VaultKeyPrefix' { $Config.VaultKeyPrefix }
+                        'VaultApiKey' { $apiKey }
+                    }
+                ) | Out-Null
+            }
 
-            Add-PodeEndpoint -Address 127.0.0.1 -Port 8072 -Protocol Http
+            # Configure server
+            Add-PodeEndpoint -Address $Config.ServerConfig.Address -Port $Config.ServerConfig.Port -Protocol $Config.ServerConfig.Protocol
+            Set-PodeSecurityAccessControl -Origin $Config.Security.Origin -Methods $Config.Security.Methods -Headers $Config.Security.Headers -Duration $Config.Security.Duration
 
-            If($EnableRequestLogging){New-PodeLoggingMethod -Terminal | Enable-PodeRequestLogging}
-            If($EnableErrorLogging){New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging}
+            # Configure logging
+            if ($EnableRequestLogging) { New-PodeLoggingMethod -Terminal | Enable-PodeRequestLogging }
+            if ($EnableErrorLogging) { New-PodeLoggingMethod -Terminal | Enable-PodeErrorLogging }
 
-            # setup apiKey authentication to validate a user
+            # Authentication
             New-PodeAuthScheme -ApiKey | Add-PodeAuth -Name 'Auth' -Sessionless -ScriptBlock {
                 param($key)
-
-                #Grab current key
-                $ApiKey = Get-PodeState -Name 'VaultApiKey'
                 
-                #Check if user is authenticated
-                if ($key.toString() -eq $ApiKey.toString()) {
-                    return @{
-                        User = @{'ID' ='1'}
-                    }
+                $apiKey = Get-PodeState -Name 'VaultApiKey'
+                
+                if ($key.toString() -eq $apiKey.toString()) {
+                    return @{ User = @{ ID = '1' } }
                 }
-
-                # authentication failed
+                elseif ($WebEvent.Request.UrlReferrer -match '^https://deploy\.lmdemo\.us/|^http://localhost:') {
+                    return @{ User = @{ ID = '2' } }
+                }
+                
                 return $null
             }
-        
-            # check the request on this route against the authentication
+
+            # Routes
             Add-PodeRoute -Method Get -Path '/api/v1/portal/:AccountName' -Authentication 'Auth' -ScriptBlock {
-                #Store Session Info in Secret Vault
-                $VaultName = Get-PodeState -Name 'VaultName'
-                $VaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
-                $VaultUnlock = Get-PodeState -Name 'VaultUnlock'
-
-                Unlock-SecretVault -Name  $VaultName -Password $VaultUnlock
-
-                #Get Session details in vault, return response data
-                $AccountName = $WebEvent.Parameters['AccountName']
-                Try{
-                    $SecretData = Get-Secret -Name $VaultKeyPrefix-$AccountName -Vault  $VaultName -AsPlainText -ErrorAction Stop
-                    Write-PodeJsonResponse -Value $SecretData
+                Try {
+                    $vaultName = Get-PodeState -Name 'VaultName'
+                    $vaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
+                    $accountName = $WebEvent.Parameters['AccountName']
+                    
+                    Unlock-SecretVault -Name $vaultName -Password (Get-PodeState -Name 'VaultUnlock')
+                    $secretData = Get-SessionData -AccountName $accountName -VaultName $vaultName -VaultKeyPrefix $vaultKeyPrefix
+                    Write-PodeJsonResponse -Value $secretData
                 }
-                Catch{
-                    Write-PodeTextResponse -Value "Unexpected error: $($_.Exception.Message)" -StatusCode 500
-                    #Set-PodeResponseStatus -Code 500 -Exception "Unexpected error: $($_.Exception.Message)" -NoErrorPage
+                Catch {
+                    Write-PodeTextResponse -Value $_.Exception.Message -StatusCode 500
                 }
             }
-        
-            # this route will not be validated against the authentication
-            Add-PodeRoute -Method Post -Path '/api/v1/portal/:AccountName' -ScriptBlock {
-                #Store Session Info in Secret Vault
-                $VaultName = Get-PodeState -Name 'VaultName'
-                $VaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
-                $VaultUnlock = Get-PodeState -Name 'VaultUnlock'
 
-                #Convert request data into JSON and unlock vault
-                $SecretData = $($WebEvent.Data | ConvertTo-Json)
-                Unlock-SecretVault -Name  $VaultName -Password $VaultUnlock
-
-                #Add/Update Session details in vault, return response data
-                $AccountName = $WebEvent.Parameters['AccountName']
-                Try{
-                    Set-Secret -Name $VaultKeyPrefix-$AccountName -Vault  $VaultName -Secret $SecretData -Metadata @{Modified="$(Get-Date)";Type="SessionSync";Portal=$AccountName}
-                    Write-PodeJsonResponse -Value $SecretData
+            # Health check routes
+            @('/api/v1/portal', '/api/v1/health') | ForEach-Object {
+                Add-PodeRoute -Method Options -Path $_ -ScriptBlock {
+                    Write-PodeTextResponse -Value 'OK' -StatusCode 200
                 }
-                Catch{
-                    Write-PodeTextResponse -Value "Unexpected error: $($_.Exception.Message)" -StatusCode 500
-                    #Set-PodeResponseStatus -Code 500 -Exception "Unexpected error: $($_.Exception.Message)" -NoErrorPage
+            }
+            
+            Add-PodeRoute -Method Get -Path '/api/v1/health' -ScriptBlock {
+                Write-PodeTextResponse -Value 'OK' -StatusCode 200
+            }
+
+            Add-PodeRoute -Method Get -Path '/api/v1/portal' -Authentication 'Auth' -ScriptBlock {
+                Try {
+                    $vaultName = Get-PodeState -Name 'VaultName'
+                    $vaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
+                    
+                    Unlock-SecretVault -Name $vaultName -Password (Get-PodeState -Name 'VaultUnlock')
+                    $sessions = Get-SecretInfo -Vault $vaultName | 
+                        Where-Object { $_.Name -like "$vaultKeyPrefix*" -and $_.Name -notlike "*RESTAPIKey" }
+                    
+                    $secretData = $sessions | ForEach-Object {
+                        Try {
+                            $secret = Get-Secret -Vault $vaultName -Name $_.Name -AsPlainText -ErrorAction Stop
+                            [PSCustomObject]@{
+                                Portal   = $_.Metadata["Portal"]
+                                Modified = $_.Metadata["Modified"]
+                                Type     = $_.Metadata["Type"]
+                                Secret   = $secret | ConvertFrom-Json
+                            }
+                        }
+                        Catch {
+                            Write-Error "Failed to process session: $($_.Metadata['Portal']): $_"
+                            $null
+                        }
+                    } | Where-Object { $_ -ne $null }
+                    
+                    Write-PodeJsonResponse -Value $secretData
+                }
+                Catch {
+                    Write-PodeTextResponse -Value $_.Exception.Message -StatusCode 500
+                }
+            }
+
+            Add-PodeRoute -Method Post -Path '/api/v1/portal/:AccountName' -ScriptBlock {
+                Try {
+                    $vaultName = Get-PodeState -Name 'VaultName'
+                    $vaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
+                    $accountName = $WebEvent.Parameters['AccountName']
+                    $secretData = $WebEvent.Data | ConvertTo-Json
+                    
+                    Unlock-SecretVault -Name $vaultName -Password (Get-PodeState -Name 'VaultUnlock')
+                    Set-Secret -Name "$vaultKeyPrefix-$accountName" -Vault $vaultName -Secret $secretData -Metadata @{
+                        Modified = (Get-Date).ToString('o')
+                        Type     = "SessionSync"
+                        Portal   = $accountName
+                    }
+                    
+                    Write-PodeJsonResponse -Value $secretData
+                }
+                Catch {
+                    Write-PodeTextResponse -Value $_.Exception.Message -StatusCode 500
                 }
             }
 
             Register-PodeEvent -Type Terminate -Name 'CleanupSessions' -ScriptBlock {
-                $VaultName = Get-PodeState -Name 'VaultName'
-                $VaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
-                $VaultUnlock = Get-PodeState -Name 'VaultUnlock'
-
-                Unlock-SecretVault -Name  $VaultName -Password $VaultUnlock
-                $Sessions = Get-SecretInfo -Vault $VaultName | Where-Object {$_.Name -like "*$VaultKeyPrefix*"}
-                Foreach ($Session in $Sessions){
-                    Try{
-                        Remove-Secret -Vault $VaultName -Name $Session.Name -ErrorAction Stop
-                        Write-Host "Successfully cleared session details for $($Session.Metadata["Portal"])." -ForegroundColor Green
-                    }
-                    Catch{
-                        Write-Error "Unable to clear session details for $($Session.Metadata["Portal"]): $_"
+                Try {
+                    $vaultName = Get-PodeState -Name 'VaultName'
+                    $vaultKeyPrefix = Get-PodeState -Name 'VaultKeyPrefix'
+                    
+                    Unlock-SecretVault -Name $vaultName -Password (Get-PodeState -Name 'VaultUnlock')
+                    $sessions = Get-SecretInfo -Vault $vaultName | 
+                        Where-Object { $_.Name -like "*$vaultKeyPrefix*" }
+                    
+                    foreach ($session in $sessions) {
+                        Try {
+                            Remove-Secret -Vault $vaultName -Name $session.Name -ErrorAction Stop
+                            Write-Host "Cleared session: $($session.Metadata['Portal'])" -ForegroundColor Green
+                        }
+                        Catch {
+                            Write-Error "Failed to clear session: $($session.Metadata['Portal']): $_"
+                        }
                     }
                 }
-                Disconnect-LMAccount
+                Finally {
+                    Disconnect-LMAccount
+                }
             }
         }
     }
-    End{}
+    
+    End {}
 }

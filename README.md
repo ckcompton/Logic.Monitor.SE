@@ -5,24 +5,8 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## Version 1.7.7
-- **Find-LMLogAnomalyAlerts**:
-  - Update anomaly detection logic to use a more recent and accurate model for sentiment analysis and log anomaly detection.
-
-## Version 1.7.6
-
-###### **New Cmdlets**:
-- **Find-LMLogAnomalyAlerts**:
-  - New cmdlet that identifies and analyzes alerts with associated log anomalies, including sentiment analysis.
-  - Supports custom date ranges and batch processing options.
-  - Correlates alerts with anomalous logs within a 30-minute window.
-- **Format-LMLogAnomalyResults**:
-  - Formats log anomaly analysis results in a clear, color-coded console output.
-  - Displays detailed alert information and associated logs with sentiment scores.
-- **Export-LMLogAnomalyReport**:
-  - Generates comprehensive HTML reports for log anomaly analysis results.
-  - Features interactive charts, severity distribution analysis, and detailed data tables.
-  - Includes export capabilities (CSV, Excel, PDF) and responsive design.
-  - Requires PSWriteHTML module.
+## Version 1.7.8
+- **Start-LMSessionSyncServer**:
+  - Update Session Sync to support LMDA integration. Must be on 1.7.8 or later to use with LMDA.
 
 [Previous Release Notes](RELEASENOTES.md)
