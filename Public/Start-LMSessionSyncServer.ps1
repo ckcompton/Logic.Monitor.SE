@@ -55,11 +55,11 @@ Function Start-LMSessionSyncServer {
                 param($key)
                 
                 $apiKey = Get-PodeState -Name 'VaultApiKey'
-                
+
                 if ($key.toString() -eq $apiKey.toString()) {
                     return @{ User = @{ ID = '1' } }
                 }
-                elseif ($WebEvent.Request.UrlReferrer -match '^https://deploy\.lmdemo\.us/|^http://localhost:') {
+                elseif ($WebEvent.Request.Headers.Origin -match '^https://deploy\.lmdemo\.us|^http://localhost:') {
                     return @{ User = @{ ID = '2' } }
                 }
                 
