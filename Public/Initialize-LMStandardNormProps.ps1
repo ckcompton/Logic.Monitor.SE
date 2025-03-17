@@ -93,7 +93,6 @@ Function Initialize-LMStandardNormProps {
         }Else {
             Write-Error "Please ensure you are logged in before running any commands, use Connect-LMAccount to login and try again."
         }
-        End {}
     }
     End {}
 }
