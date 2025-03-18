@@ -76,15 +76,42 @@ Function Initialize-LMStandardNormProps {
                     Properties = @('sn.customer','customer','system.aws.tag.customer','system.azure.tag.customer','system.gcp.tag.customer')
                 }
             )
-            
+            # Retrieve existing props so we don't overwrite customers existing values. 
+            $ExistingProps = Get-LMNormalizedProperties
             foreach ($item in $NormalizedProperties) {
-                Write-Host "Configuring normalized property Alias: $($item.Alias)"
-                try {
-                    New-LMNormalizedProperties -Alias $item.Alias -Properties $item.Properties
-                    Write-Host "  --> Success: Alias '$($item.Alias)'"
-                }
-                catch {
-                    Write-Error "  --> Failed to set Alias '$($item.Alias)': $($_.Exception.Message)"
+                Write-Host "Checking if alias is already configured. -Alias:$($item.Alias)" 
+                
+                if($ExistingProps.alias -contains $item.Alias){
+                    Write-Host "$($item.Alias) Exists. Ensuring Standard values existis."
+
+                    #Get all rows (PSObjects) in $ExistingProps that match this alias
+                    $aliasProps = $ExistingProps | Where-Object { $_.alias -eq $item.Alias }
+
+                    # Check the values for the property. 
+                    foreach ($prop in $item.Properties) {
+                        if ($aliasProps.hostProperty -notcontains $prop) {
+                            Write-Host "  -> Property '$prop' is missing under alias '$($item.Alias)'. Patching Now"
+                            try {
+                                New-LMNormalizedProperties -Alias $item.Alias -Properties @($prop) 
+                                Write-Host "  --> Success: Alias '$($item.Alias)'"
+                            }
+                            catch {
+                                Write-Error "  --> Failed to set Alias '$($item.Alias)': $($_.Exception.Message)"
+                            }
+                        }
+                        else {
+                            Write-Host "  -> Property '$prop' for alias '$($item.Alias)' already exists."
+                        }
+                    }
+                }Else{
+                    Write-Host "Configuring normalized property Alias: $($item.Alias)"
+                    try {
+                        New-LMNormalizedProperties -Alias $item.Alias -Properties $item.Properties
+                        Write-Host "  --> Success: Alias '$($item.Alias)'"
+                    }
+                    catch {
+                        Write-Error "  --> Failed to set Alias '$($item.Alias)': $($_.Exception.Message)"
+                    }
                 }
             }
         
