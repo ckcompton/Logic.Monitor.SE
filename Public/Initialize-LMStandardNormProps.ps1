@@ -11,6 +11,8 @@
 .EXAMPLE
     Initialize-LMStandardNormProps.ps1
     This will attempt to create/update the normalized properties in LogicMonitor.
+    #TODO Figure out why i'm not retaining existing properties that don't exist in my models. 
+    #TODO: Figure out why it thinks things don't exist when they do exist. 
 #>
 Function Initialize-LMStandardNormProps {
 
@@ -79,38 +81,32 @@ Function Initialize-LMStandardNormProps {
             # Retrieve existing props so we don't overwrite customers existing values. 
             $ExistingProps = Get-LMNormalizedProperties
             foreach ($item in $NormalizedProperties) {
-                Write-Host "Checking if alias is already configured. -Alias:$($item.Alias)" 
-                
-                if($ExistingProps.alias -contains $item.Alias){
-                    Write-Host "$($item.Alias) Exists. Ensuring Standard values existis."
+                Write-Host "Checking alias: $($item.Alias)"
+            
+                # Get the existing rows for this alias (if any)
+                $aliasRows = $ExistingProps | Where-Object { $_.alias -eq $item.Alias }
+            
+                if (-not $aliasRows) {
+                    # Alias doesn't exist at all, so create it with all standard properties
+                    Write-Host " -> Alias '$($item.Alias)' does not exist. Creating it with all standard properties..."
+                    New-LMNormalizedProperties -Alias $item.Alias -Properties $item.Properties
+                    continue
+                }
+                else {
+                    Write-Host " -> Alias '$($item.Alias)' found. Checking for any missing properties..."
+            
+                    # Gather which standard properties are missing
+                    $existingProps = $aliasRows.hostProperty
+                    $missingProps  = $item.Properties | Where-Object { $existingProps -notcontains $_ }
+                    $allProps = $existingProps + $missingProps | Select-Object -Unique
 
-                    #Get all rows (PSObjects) in $ExistingProps that match this alias
-                    $aliasProps = $ExistingProps | Where-Object { $_.alias -eq $item.Alias }
-
-                    # Check the values for the property. 
-                    foreach ($prop in $item.Properties) {
-                        if ($aliasProps.hostProperty -notcontains $prop) {
-                            Write-Host "  -> Property '$prop' is missing under alias '$($item.Alias)'. Patching Now"
-                            try {
-                                New-LMNormalizedProperties -Alias $item.Alias -Properties @($prop) 
-                                Write-Host "  --> Success: Alias '$($item.Alias)'"
-                            }
-                            catch {
-                                Write-Error "  --> Failed to set Alias '$($item.Alias)': $($_.Exception.Message)"
-                            }
-                        }
-                        else {
-                            Write-Host "  -> Property '$prop' for alias '$($item.Alias)' already exists."
-                        }
+                    if ($missingProps) {
+                        Write-Host "    Missing properties: $($missingProps -join ', ')"
+                        # We only pass the missing properties in ONE call
+                        New-LMNormalizedProperties -Alias $item.Alias -Properties $allProps
                     }
-                }Else{
-                    Write-Host "Configuring normalized property Alias: $($item.Alias)"
-                    try {
-                        New-LMNormalizedProperties -Alias $item.Alias -Properties $item.Properties
-                        Write-Host "  --> Success: Alias '$($item.Alias)'"
-                    }
-                    catch {
-                        Write-Error "  --> Failed to set Alias '$($item.Alias)': $($_.Exception.Message)"
+                    else {
+                        Write-Host "    No missing properties. Nothing to do."
                     }
                 }
             }
