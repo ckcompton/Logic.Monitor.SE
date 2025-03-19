@@ -19,6 +19,22 @@ Function Start-LMSessionSyncServer {
     )
     
     Begin {
+        $Config = @{
+            VaultName      = "Logic.Monitor"
+            VaultKeyPrefix = "LMSessionSync"
+            ServerConfig   = @{
+                Address  = '127.0.0.1'
+                Port     = 8072
+                Protocol = 'Http'
+            }
+            Security       = @{
+                Origin   = '*'
+                Methods  = '*'
+                Headers  = '*'
+                Duration = 7200
+            }
+        }
+
         Initialize-SecretVault -VaultName $Config.VaultName
     }
     
