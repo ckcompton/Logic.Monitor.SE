@@ -90,7 +90,7 @@ Function Start-LMSessionSyncServer {
                     $accountName = $WebEvent.Parameters['AccountName']
                     
                     Unlock-SecretVault -Name $vaultName -Password (Get-PodeState -Name 'VaultUnlock')
-                    $secretData = Get-SessionData -AccountName $accountName -VaultName $vaultName -VaultKeyPrefix $vaultKeyPrefix
+                    $secretData = Get-Secret -Name "$vaultKeyPrefix-$accountName" -Vault $vaultName -AsPlainText
                     Write-PodeJsonResponse -Value $secretData
                 }
                 Catch {
