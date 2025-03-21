@@ -11,8 +11,6 @@
 .EXAMPLE
     Initialize-LMStandardNormProps.ps1
     This will attempt to create/update the normalized properties in LogicMonitor.
-    #TODO Figure out why i'm not retaining existing properties that don't exist in my models. 
-    #TODO: Figure out why it thinks things don't exist when they do exist. 
 #>
 Function Initialize-LMStandardNormProps {
 
@@ -27,35 +25,35 @@ Function Initialize-LMStandardNormProps {
             $NormalizedProperties = @(
                 [PSCustomObject]@{
                     Alias      = 'location.region'
-                    Properties = @('sn.location.region','location.region','auto.location.region')
+                    Properties = @('location.region','auto.location.region')
                 },
                 [PSCustomObject]@{
                     Alias      = 'location.country'
-                    Properties = @('sn.location.country','location.country','auto.location.country')
+                    Properties = @('location.country','auto.location.country')
                 },
                 [PSCustomObject]@{
                     Alias      = 'location.state'
-                    Properties = @('sn.location.state','location.state','auto.location.state')
+                    Properties = @('location.state','auto.location.state')
                 },
                 [PSCustomObject]@{
                     Alias      = 'location.city'
-                    Properties = @('sn.location.city','location.city','auto.location.city')
+                    Properties = @('location.city','auto.location.city')
                 },
                 [PSCustomObject]@{
                     Alias      = 'location.site'
-                    Properties = @('sn.location.street','location.site','auto.location.site')
+                    Properties = @('location.site','auto.location.site')
                 },
                 [PSCustomObject]@{
                     Alias      = 'location.type'
-                    Properties = @('sn.location.type','location.type','auto.location.type')
+                    Properties = @('location.type','auto.location.type')
                 },
                 [PSCustomObject]@{
                     Alias      = 'environment'
-                    Properties = @('sn.environment','environment','system.aws.tag.environment','system.azure.tag.environment','system.gcp.tag.environment')
+                    Properties = @('environment','system.aws.tag.environment','system.azure.tag.environment','system.gcp.tag.environment')
                 },
                 [PSCustomObject]@{
                     Alias      = 'owner'
-                    Properties = @('sn.owner','owner','system.aws.tag.owner','system.azure.tag.owner','system.gcp.tag.owner')
+                    Properties = @('owner','system.aws.tag.owner','system.azure.tag.owner','system.gcp.tag.owner')
                 },
                 [PSCustomObject]@{
                     Alias      = 'version'
@@ -63,19 +61,15 @@ Function Initialize-LMStandardNormProps {
                 },
                 [PSCustomObject]@{
                     Alias      = 'service'
-                    Properties = @('sn.service.name','service','system.aws.tag.service','system.azure.tag.service','system.gcp.tag.service')
+                    Properties = @('service','system.aws.tag.service','system.azure.tag.service','system.gcp.tag.service')
                 },
                 [PSCustomObject]@{
                     Alias      = 'service_component'
-                    Properties = @('sn.service_component','service_component','system.aws.tag.service_component','system.azure.tag.service_component','system.gcp.tag.service_component')
+                    Properties = @('service_component','system.aws.tag.service_component','system.azure.tag.service_component','system.gcp.tag.service_component')
                 },
                 [PSCustomObject]@{
                     Alias      = 'application'
-                    Properties = @('sn.application','application','system.aws.tag.application','system.azure.tag.application','system.gcp.tag.application')
-                },
-                [PSCustomObject]@{
-                    Alias      = 'customer'
-                    Properties = @('sn.customer','customer','system.aws.tag.customer','system.azure.tag.customer','system.gcp.tag.customer')
+                    Properties = @('application','system.aws.tag.application','system.azure.tag.application','system.gcp.tag.application')
                 }
             )
             # Retrieve existing props so we don't overwrite customers existing values. 
@@ -85,6 +79,7 @@ Function Initialize-LMStandardNormProps {
             
                 # Get the existing rows for this alias (if any)
                 $aliasRows = $ExistingProps | Where-Object { $_.alias -eq $item.Alias }
+                Write-Host($aliasRows)
             
                 if (-not $aliasRows) {
                     # Alias doesn't exist at all, so create it with all standard properties
@@ -98,15 +93,15 @@ Function Initialize-LMStandardNormProps {
                     # Gather which standard properties are missing
                     $existingProps = $aliasRows.hostProperty
                     $missingProps  = $item.Properties | Where-Object { $existingProps -notcontains $_ }
-                    $allProps = $existingProps + $missingProps | Select-Object -Unique
 
                     if ($missingProps) {
                         Write-Host "    Missing properties: $($missingProps -join ', ')"
-                        # We only pass the missing properties in ONE call
-                        New-LMNormalizedProperties -Alias $item.Alias -Properties $allProps
+                        foreach($prop in $missingProps){
+                            Set-LMNormalizedProperties -Add -Alias $item.Alias -Properties @($prop)
+                        }
                     }
                     else {
-                        Write-Host "    No missing properties. Nothing to do."
+                        Write-Host "No missing properties. Nothing to do."
                     }
                 }
             }
