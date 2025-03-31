@@ -76,23 +76,20 @@ Function Initialize-LMStandardNormProps {
             $ExistingProps = Get-LMNormalizedProperties
             foreach ($item in $NormalizedProperties) {
                 Write-Host "Checking alias: $($item.Alias)"
-            
+
                 # Get the existing rows for this alias (if any)
                 $aliasRows = $ExistingProps | Where-Object { $_.alias -eq $item.Alias }
-                Write-Host($aliasRows)
-            
                 if (-not $aliasRows) {
                     # Alias doesn't exist at all, so create it with all standard properties
                     Write-Host " -> Alias '$($item.Alias)' does not exist. Creating it with all standard properties..."
                     New-LMNormalizedProperties -Alias $item.Alias -Properties $item.Properties
-                    continue
                 }
                 else {
                     Write-Host " -> Alias '$($item.Alias)' found. Checking for any missing properties..."
             
                     # Gather which standard properties are missing
-                    $existingProps = $aliasRows.hostProperty
-                    $missingProps  = $item.Properties | Where-Object { $existingProps -notcontains $_ }
+                    $aliasHostProps = $aliasRows.hostProperty
+                    $missingProps   = $item.Properties | Where-Object { $aliasHostProps -notcontains $_ }
 
                     if ($missingProps) {
                         Write-Host "    Missing properties: $($missingProps -join ', ')"
