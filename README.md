@@ -5,7 +5,7 @@ PowerShell modules with utilities used by Sales Engineering.
 
 # Change List
 
-## Version 1.8
+## Version 1.8.1
 - **Initialize-LMStandardNormProps**:
   - Initializes standard normalized properties in LogicMonitor.
     - Iterates through a list of standard property aliases (e.g., "location.region", "owner", etc.).
