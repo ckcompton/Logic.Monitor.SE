@@ -127,7 +127,14 @@ Function Initialize-LMPOVSetup {
         $PortalInfo = Get-LMAccountStatus
         If ($($PortalInfo)) {
             $PortalName = $PortalInfo.Portal
-            $DeviceName = "$PortalName.logicmonitor.com"
+
+            #Check if we are in govcloud and set the device name accordingly
+            If($PortalInfo.GovCloud){
+                $DeviceName = "$PortalName.lmgov.us"
+            }
+            Else{
+                $DeviceName = "$PortalName.logicmonitor.com"
+            }
 
             #Generate hastable of new dynamic groups to create
             $DynamicGroupList = @{
@@ -152,6 +159,7 @@ Function Initialize-LMPOVSetup {
                 "Cloud PaaS Resources" = 'system.cloud.pricingCategory =~ "paas"'
                 "Cloud Non-Compute Resources" = 'system.cloud.pricingCategory =~ "non-compute"'
                 "Core Resources" = '!system.cloud.pricingCategory && !system.cloud.category && system.device.provider != "K8S"'
+                "Wireless Devices" = 'join(system.categories,",")=~"ArubaCentralAP" || join(system.categories,",")=~"CiscoMerakiWireless" || join(system.categories,",")=~"CiscoMerakiCamera" || join(system.categories,",")=~"CiscoMerakiSensor" || join(system.categories,",")=~"CiscoCatalystAccessPoint" || join(system.categories,",")=~"ExtremeNetworksAP" || join(system.categories,",")=~"JuniperMistAP"'
             }
             
             $GitubURI = "https://raw.githubusercontent.com/stevevillardi"
