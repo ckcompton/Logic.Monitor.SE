@@ -61,23 +61,10 @@ Function Import-LMMultiCredentialConfig {
         [Object]$SSHCsvFilePath, #File path to SSH CSV
         
         [Parameter(ParameterSetName="ExampleCSV")]
+        
         [Switch]$GenerateExampleCSV,
-
-        [Parameter(ParameterSetName="SNMP-Config")]
-        [Parameter(ParameterSetName="SNMP-SSH-Config")]
-        [Parameter(ParameterSetName="SNMP-Config-CSV")]
-        [Parameter(ParameterSetName="SNMP-SSH-Config-CSV")]
-        [Parameter(ParameterSetName="SSH-Config")]
-        [Parameter(ParameterSetName="SSH-Config-CSV")]
         [String]$CredentialGroupName = "Resource Credential Group", #Group name for where dynamic cred groups should be created
-
-        [Parameter(ParameterSetName="SNMP-Config")]
-        [Parameter(ParameterSetName="SNMP-SSH-Config")]
-        [Parameter(ParameterSetName="SNMP-Config-CSV")]
-        [Parameter(ParameterSetName="SNMP-SSH-Config-CSV")]
-        [Parameter(ParameterSetName="SSH-Config")]
-        [Parameter(ParameterSetName="SSH-Config-CSV")]
-        [String]$ImportGroupName = "Resource Import Group" #Group name for where devices will be onboarded into
+        [String]$ImportGroupName = "Resource Import Group", #Group name for where devices will be onboarded into
         [String]$ImportGroupId #Group ID for where devices will be onboarded into, allows you to use groups that need fullPath as name like "Device by Type/Network"
 
     )
@@ -200,18 +187,26 @@ Function Import-LMMultiCredentialConfig {
                 Return
             }
 
+            # Track if ImportGroupName was explicitly set by the user
+            $IsImportGroupNameDefault = ($PSBoundParameters['ImportGroupName'] -eq $null -or $ImportGroupName -eq "Resource Import Group")
+
             #Verifed JSON object, proceed with setting up multi-credential config
             $CredentialGroupId = (Get-LMDeviceGroup -Name $CredentialGroupName).Id
             If(!$CredentialGroupId){
                 #Create new credential group
                 $CredentialGroupId = (New-LMDeviceGroup -Name $CredentialGroupName -ParentGroupId 1 -Description "Auto created resource group for multi credential configuration").Id
             }
-            
+
             If (-not $ImportGroupId) {
                 $ImportGroupId = (Get-LMDeviceGroup -Name $ImportGroupName).Id
                 If(!$ImportGroupId){
                     #Create new import group
                     $ImportGroupId = (New-LMDeviceGroup -Name $ImportGroupName -ParentGroupId 1 -Description "Auto created resource group for onboarding resources using multi credential configuration").Id
+                }
+            }else{
+                #If ImportGroupId is provided, only overwrite ImportGroupName if it was not explicitly set
+                if ($IsImportGroupNameDefault) {
+                    $ImportGroupName = (Get-LMDeviceGroup -Id $ImportGroupId).fullPath
                 }
             }
 
