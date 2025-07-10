@@ -78,6 +78,7 @@ Function Import-LMMultiCredentialConfig {
         [Parameter(ParameterSetName="SSH-Config")]
         [Parameter(ParameterSetName="SSH-Config-CSV")]
         [String]$ImportGroupName = "Resource Import Group" #Group name for where devices will be onboarded into
+        [String]$ImportGroupId #Group ID for where devices will be onboarded into, allows you to use groups that need fullPath as name like "Device by Type/Network"
 
     )
     Begin{
@@ -205,11 +206,13 @@ Function Import-LMMultiCredentialConfig {
                 #Create new credential group
                 $CredentialGroupId = (New-LMDeviceGroup -Name $CredentialGroupName -ParentGroupId 1 -Description "Auto created resource group for multi credential configuration").Id
             }
-
-            $ImportGroupId = (Get-LMDeviceGroup -Name $ImportGroupName).Id
-            If(!$ImportGroupId){
-                #Create new import group
-                $ImportGroupId = (New-LMDeviceGroup -Name $ImportGroupName -ParentGroupId 1 -Description "Auto created resource group for onboarding resources using multi credential configuration").Id
+            
+            If (-not $ImportGroupId) {
+                $ImportGroupId = (Get-LMDeviceGroup -Name $ImportGroupName).Id
+                If(!$ImportGroupId){
+                    #Create new import group
+                    $ImportGroupId = (New-LMDeviceGroup -Name $ImportGroupName -ParentGroupId 1 -Description "Auto created resource group for onboarding resources using multi credential configuration").Id
+                }
             }
 
             #Bulk create dynamic credentials resource group
