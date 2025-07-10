@@ -61,7 +61,6 @@ Function Import-LMMultiCredentialConfig {
         [Object]$SSHCsvFilePath, #File path to SSH CSV
         
         [Parameter(ParameterSetName="ExampleCSV")]
-        
         [Switch]$GenerateExampleCSV,
         [String]$CredentialGroupName = "Resource Credential Group", #Group name for where dynamic cred groups should be created
         [String]$ImportGroupName = "Resource Import Group", #Group name for where devices will be onboarded into
@@ -132,16 +131,18 @@ Function Import-LMMultiCredentialConfig {
                     "SNMP-Config-CSV" {
                         #Convert CSV to proper object format
                         $SNMPCsvInfo = Import-Csv -Path $SNMPCsvFilePath
-    
+
                         #Loop through creds list and add to JSON object
                         $SNMPCredentialsObject = New-Object System.Collections.ArrayList
-    
+
                         Foreach($SNMPCred in $SNMPCsvInfo){
+                            $priority = if ($SNMPCred.PSObject.Properties['priority']) { [int]$SNMPCred.priority } else { 0 }
                             If($SNMPCred.version -eq "v2c" -or $SNMPCred.version -eq "v2"){
                                 $SNMPCredentialsObject.Add([PSCustomObject]@{
                                     name = $SNMPCred.name
                                     version = "v2c"
                                     community = $SNMPCred.community
+                                    priority = $priority
                                 }) | Out-Null
                             }
                             Else{
@@ -155,11 +156,14 @@ Function Import-LMMultiCredentialConfig {
                                         privMethod = $SNMPCred.privMethod
                                         privToken = $SNMPCred.privToken
                                     }
+                                    priority = $priority
                                 }) | Out-Null
                             }
                         }
-                        #Convert to JSON
-                        $SNMPCredentialsJSON = $SNMPCredentialsObject | ConvertTo-Json -ErrorAction Stop
+                        # Determine if priority column exists
+                        $sortKey = if ($SNMPCsvInfo | Get-Member -Name 'priority') { 'priority' } else { 'name' }
+                        # Convert to JSON after sorting by priority, then name
+                        $SNMPCredentialsJSON = ($SNMPCredentialsObject | Sort-Object priority, name) | ConvertTo-Json -ErrorAction Stop
                     }
     
                     "SSH-Config-CSV" {
@@ -170,14 +174,16 @@ Function Import-LMMultiCredentialConfig {
                         $SSHCredentialsObject = New-Object System.Collections.ArrayList
         
                         Foreach($SSHCred in $SSHCsvInfo){
+                            $priority = if ($SSHCred.PSObject.Properties['priority']) { [int]$SSHCred.priority } else { 100 }
                             $SSHCredentialsObject.Add([PSCustomObject]@{
                                 name = $SSHCred.name
                                 sshuser = $SSHCred.sshuser
                                 sshpass = $SSHCred.sshpass
+                                priority = $priority
                             }) | Out-Null
                         }
-                        #Convert to JSON
-                        $SSHCredentialsJSON = $SSHCredentialsObject | ConvertTo-Json -ErrorAction Stop
+                        $sortKey = if ($SSHCsvInfo | Get-Member -Name 'priority') { 'priority' } else { 'name' }
+                        $SSHCredentialsJSON = ($SSHCredentialsObject | Sort-Object priority, name) | ConvertTo-Json -ErrorAction Stop
                     }
                 }
             }
