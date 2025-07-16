@@ -62,8 +62,11 @@ Function Import-LMMultiCredentialConfig {
         
         [Parameter(ParameterSetName="ExampleCSV")]
         [Switch]$GenerateExampleCSV,
+
         [String]$CredentialGroupName = "Resource Credential Group", #Group name for where dynamic cred groups should be created
+        
         [String]$ImportGroupName = "Resource Import Group", #Group name for where devices will be onboarded into
+        
         [String]$ImportGroupId #Group ID for where devices will be onboarded into, allows you to use groups that need fullPath as name like "Device by Type/Network"
 
     )
@@ -72,17 +75,18 @@ Function Import-LMMultiCredentialConfig {
     }
     Process{
         If($GenerateExampleCSV){
-            $SampleCSV = ("name,sshuser,sshpass").Split(",")
+            $SampleCSV = ("name,sshuser,sshpass,priority").Split(",")
 
             [PSCustomObject]@{
                 $SampleCSV[0]="CorpSSHCred"
                 $SampleCSV[1]="logicmonitor"
                 $SampleCSV[2]="chamgeMe123"
+                $SampleCSV[3]="1"
             } | Export-Csv "SampleSSHCredCSV.csv"  -Force -NoTypeInformation
 
             Write-Host "[INFO]: Saved sample CSV (SampleSSHCredCSV.csv) to current directory."
             
-            $SampleCSV = ("name,version,community,security,authMethod,authToken,privMethod,privToken").Split(",")
+            $SampleCSV = ("name,version,community,security,authMethod,authToken,privMethod,privToken,priority").Split(",")
 
             $SampleContent = New-Object System.Collections.ArrayList
             $SampleContent.Add([PSCustomObject]@{
@@ -94,6 +98,7 @@ Function Import-LMMultiCredentialConfig {
                 $SampleCSV[5]="$null"
                 $SampleCSV[6]="$null"
                 $SampleCSV[7]="$null"
+                $SampleCSV[8]="1"
             }) | Out-Null
             $SampleContent.Add([PSCustomObject]@{
                 $SampleCSV[0]="CorpROv3"
@@ -104,6 +109,7 @@ Function Import-LMMultiCredentialConfig {
                 $SampleCSV[5]="authpassword"
                 $SampleCSV[6]="AES"
                 $SampleCSV[7]="privpassword"
+                $SampleCSV[8]="2"
             }) | Out-Null
 
             $SampleContent | Export-Csv "SampleSNMPCredCSV.csv"  -Force -NoTypeInformation
