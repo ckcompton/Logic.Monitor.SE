@@ -6,8 +6,8 @@
     This script:
     1. Verifies that you are connected to LogicMonitor (via Connect-LMAccount).
     2. Iterates through a list of standard property aliases (e.g., "location.region", "owner", etc.).
-    3. For each alias, it calls New-LMNormalizedProperties if the alias is missing,
-       or Set-LMNormalizedProperties if it is partially missing some properties.
+    3. For each alias, it calls New-LMNormalizedProperty if the alias is missing,
+       or Set-LMNormalizedProperty if it is partially missing some properties.
 
 .EXAMPLE
     PS> Initialize-LMStandardNormProps
@@ -81,7 +81,7 @@ Function Initialize-LMStandardNormProps {
         )
 
         # 3. Retrieve current normalized properties from LogicMonitor
-        $ExistingProps = Get-LMNormalizedProperties
+        $ExistingProps = Get-LMNormalizedProperty
 
         # 4. Process each standard alias
         foreach ($item in $NormalizedProperties) {
@@ -93,7 +93,7 @@ Function Initialize-LMStandardNormProps {
             if (-not $aliasRows) {
                 # 4b. Alias does not exist -> Create it with all standard properties
                 Write-Host " -> Alias '$($item.Alias)' does not exist. Creating..."
-                New-LMNormalizedProperties -Alias $item.Alias -Properties $item.Properties
+                New-LMNormalizedProperty -Alias $item.Alias -Properties $item.Properties
             }
             else {
                 Write-Host " -> Alias '$($item.Alias)' found. Checking for missing properties..."
@@ -106,7 +106,7 @@ Function Initialize-LMStandardNormProps {
                     Write-Host "    Missing properties: $($missingProps -join ', ')"
                     # 4d. Add each missing property individually
                     foreach ($prop in $missingProps) {
-                        Set-LMNormalizedProperties -Add -Alias $item.Alias -Properties @($prop)
+                        Set-LMNormalizedProperty -Add -Alias $item.Alias -Properties @($prop)
                     }
                 }
                 else {

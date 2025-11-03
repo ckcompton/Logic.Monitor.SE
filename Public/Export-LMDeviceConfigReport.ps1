@@ -74,7 +74,7 @@ Function Export-LMDeviceConfigReport {
             $network_devices = Get-LMDevice -id $DeviceId
         }
         Else {
-            $network_devices = Get-LMDeviceGroupDevices -id $DeviceGroupId
+            $network_devices = Get-LMDeviceGroupDevice -id $DeviceGroupId
         }
 
         #Loop through Network group devices and pull list of applied ConfigSources

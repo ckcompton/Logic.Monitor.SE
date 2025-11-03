@@ -29,7 +29,7 @@ Function Get-LMPOVActivityReport{
         $Portal = $($(Get-LMAccountStatus).Portal)
         
         Write-Host "[INFO]: Collecting audit logs for $Portal for the last $DaysOfActivity days."
-        $AuditLogs = Get-LMAuditLogs -StartDate $((Get-Date).AddDays(-$DaysOfActivity)) -EndDate $(Get-Date)
+        $AuditLogs = Get-LMAuditLog -StartDate $((Get-Date).AddDays(-$DaysOfActivity)) -EndDate $(Get-Date)
         If($AuditLogs){
             Write-Host "[INFO]: Parsing through $(($AuditLogs | Measure-Object).Count) log entries."
             $Grouping = $AuditLogs | Where-Object {$_.username -like "*@*"} | Group-Object -Property username

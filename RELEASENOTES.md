@@ -1,3 +1,6 @@
+## Version 1.8.3
+- **Import-LMMultiCredentialConfig**: Update cmdlet to allow for direct group assignment for onbaording by specifying *-ImportGroupId*, useful if the group you want to use exists in multiple sub folders (ex. Network). Also added priority to the csv template to set a sepecify severity order. (PR #4 via @ckcompton)
+
 ## Version 1.8.2
 - Some cmdlets present in the this module have been migrated into the core Logic.Monitor module. Customers have been asking for some of the modules we use during POV and since they are aimed at helping users automate and manage their LogicMonitor portals it makes sense for them to be available to the broader audience. The following cmdlets have since been re-homed under the Logic.Monitor core module starting in *v7.3.1* of the core module:
   - **Invoke-LMDeviceDedupe**
