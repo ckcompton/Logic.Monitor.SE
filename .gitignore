@@ -1,4 +1,5 @@
-
 Dev.Logic.Monitor.SE.psd1
 Logic.Monitor.SE.code-workspace
 .DS_Store
+ProServices AWS Account.csv
+Public/Get-LMAWSAccountInfo.ps1
